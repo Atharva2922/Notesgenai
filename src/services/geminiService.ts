@@ -327,12 +327,19 @@ interface ImageAnalysisResult {
 
 const classifyImageIntent = (input: string) => {
     const normalized = input.toLowerCase();
-    if (/color|colour|palette/.test(normalized)) return 'color_analysis';
-    if (/text|ocr|read|extract/.test(normalized)) return 'ocr';
+
+    // Only classify as color_analysis if ONLY asking about colors (not combined with other questions)
+    if (/^(what|which|tell me)?\s*(color|colour|palette|shade|hue)s?\s*(is|are|of)?/i.test(normalized)
+        && !/name|who|what is|identify|describe|character/.test(normalized)) {
+        return 'color_analysis';
+    }
+
+    if (/text|ocr|read|extract|written/.test(normalized)) return 'ocr';
     if (/count|how many|number of/.test(normalized)) return 'counting';
     if (/weight|size|distance|age|estimate/.test(normalized)) return 'estimation';
-    if (/identify|what is this|which object|who is/.test(normalized)) return 'object identification';
+    if (/identify|what is this|which object|who is|character|person/.test(normalized)) return 'object_identification';
     if (/describe|what's happening|scene/.test(normalized)) return 'description';
+
     return 'general_analysis';
 };
 
@@ -375,42 +382,59 @@ export const analyzeImageNote = async (
     const baseUrl = resolveApiBase();
 
     const intentSystemPrompts: Record<string, string> = {
+        color_analysis: `
+You are a color analysis AI.
+The user is asking about colors in the image.
+Identify the colors accurately and describe them clearly.
+If the user asks for additional context (like names or objects), provide that too.
+Be accurate and thorough.
+`.trim(),
+
         estimation: `
 You are an image-based estimation AI.
-The user is asking for an estimated numeric value.
-You MUST provide a numeric estimate.
-Do NOT identify brand unless required.
-Do NOT describe the image.
-State assumptions briefly if needed.
+Provide accurate numeric estimates based on what you see.
+Explain your reasoning briefly.
+Be as precise as possible.
 `.trim(),
 
         ocr: `
 You are an OCR assistant.
-Extract ONLY the visible text from the image.
-Do NOT summarize or explain.
+Extract all visible text from the image accurately.
+Preserve formatting where relevant.
+If no text is visible, say so clearly.
 `.trim(),
 
         counting: `
 You are a visual counting assistant.
-Count only what the user asked for.
-Return a number and short clarification.
+Count what the user asked for accurately.
+Provide the number and a brief clarification.
+Be precise and thorough.
+`.trim(),
+
+        object_identification: `
+You are an object and character identification AI.
+Identify what you see in the image accurately.
+Provide names, descriptions, and relevant details.
+Be specific and accurate. If you recognize characters, brands, or objects, name them.
 `.trim(),
 
         description: `
-You are an image description assistant.
-Describe only what is visible.
-Be concise.
+You are an image description AI.
+Describe what you see in detail.
+Be accurate, thorough, and helpful.
+Include relevant context and details.
 `.trim(),
 
-        default: `
-You are a strict, intent-driven image analysis AI.
-Answer ONLY what the user asked.
-Avoid unnecessary details.
+        general_analysis: `
+You are a helpful image analysis AI.
+Answer the user's question accurately based on what you see.
+Be thorough, accurate, and provide relevant details.
+If you're unsure, say so rather than guessing.
 `.trim(),
     };
 
     const systemPrompt =
-        intentSystemPrompts[intent] ?? intentSystemPrompts.default;
+        intentSystemPrompts[intent] ?? intentSystemPrompts.general_analysis;
 
     const response = await fetch(`${baseUrl}/api/image-intent`, {
         method: "POST",

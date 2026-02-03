@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: "google/gemini-2.0-flash-001",
-        temperature: 0.2,
-        max_tokens: 300,
+        temperature: 0.7,
+        max_tokens: 1000,
         messages: [
           { role: "system", content: systemPrompt },
           {
