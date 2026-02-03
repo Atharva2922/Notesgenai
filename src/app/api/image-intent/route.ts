@@ -23,6 +23,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const buildImagePart = () => {
+      if (typeof imageInput !== "string") {
+        throw new Error("image input must be a string");
+      }
+      if (imageInput.startsWith("data:")) {
+        const [, base64] = imageInput.split(",", 2);
+        if (!base64) {
+          throw new Error("Malformed data URL provided");
+        }
+        return { type: "input_image", image_base64: base64 } as const;
+      }
+      return { type: "input_image", image_url: imageInput } as const;
+    };
+
     const refererHeader = req.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "https://notesgenai.vercel.app";
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -43,10 +57,7 @@ export async function POST(req: NextRequest) {
             role: "user",
             content: [
               { type: "text", text: prompt },
-              {
-                type: "image_url",
-                image_url: { url: imageInput },
-              },
+              buildImagePart(),
             ],
           },
         ],
