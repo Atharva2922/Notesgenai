@@ -181,6 +181,15 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if (isAuthChecking) return;
+    if (!userProfile) {
+      router.replace('/login');
+    }
+  }, [isAuthChecking, userProfile, router]);
+
+  const shouldShowLoginRedirect = !userProfile && !isAuthChecking;
+
   const showToast = useCallback((message: string, type: "info" | "error" | "success" = "info", actions: ToastAction[] = []) => {
     setToast({ message, type, actions });
   }, []);
@@ -1531,7 +1540,7 @@ export default function Home() {
         />
       )}
     </>
-  );
+    );
 }
 
 interface TrendingTagsPanelProps {
