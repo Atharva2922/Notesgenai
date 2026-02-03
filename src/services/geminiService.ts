@@ -337,15 +337,23 @@ const classifyImageIntent = (input: string) => {
 };
 
 const resolveApiBase = () => {
+    // Client-side: use relative URLs
     if (typeof window !== 'undefined') {
         return '';
     }
+
+    // Server-side: determine the base URL
+    // Priority 1: Explicit NEXT_PUBLIC_APP_URL
     if (process.env.NEXT_PUBLIC_APP_URL) {
         return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
     }
+
+    // Priority 2: Vercel automatic URL
     if (process.env.VERCEL_URL) {
-        return `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`;
+        return `https://${process.env.VERCEL_URL}`;
     }
+
+    // Priority 3: Local development
     return 'http://localhost:3000';
 };
 
