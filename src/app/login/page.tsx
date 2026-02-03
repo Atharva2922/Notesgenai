@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { signInWithPopup } from "firebase/auth";
+
+import { auth, googleProvider } from "@/lib/firebaseClient";
 
 type AuthMode = "login" | "signup";
 type LoginMethod = "password" | "otp";
@@ -28,6 +31,7 @@ export default function LoginPage() {
     const [loginForm, setLoginForm] = useState({ email: "", password: "", otp: "" });
     const [signupForm, setSignupForm] = useState({ name: "", email: "", password: "" });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [otpPending, setOtpPending] = useState(false);
     const [feedback, setFeedback] = useState<Feedback | null>(null);
 
@@ -163,6 +167,47 @@ export default function LoginPage() {
         }
     };
 
+    const handleGoogleSignIn = async () => {
+        setFeedback(null);
+        setIsGoogleLoading(true);
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const idToken = await result.user.getIdToken();
+
+            const response = await fetch("/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken }),
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload?.error ?? "Google sign-in failed");
+            }
+
+            setFeedback({ type: "success", message: payload?.message ?? "Signed in with Google." });
+
+            if (payload?.profile) {
+                try {
+                    localStorage.setItem("notesgenProfile", JSON.stringify(payload.profile));
+                } catch {
+                    // ignore storage errors
+                }
+            }
+
+            setTimeout(() => {
+                void router.push("/");
+            }, 600);
+        } catch (error) {
+            setFeedback({
+                type: "error",
+                message: error instanceof Error ? error.message : "Unable to sign in with Google right now.",
+            });
+        } finally {
+            setIsGoogleLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[var(--page-bg)] text-[var(--text-primary)]">
             <div className="mx-auto flex min-h-screen max-w-7xl flex-col overflow-hidden rounded-[40px] border border-[var(--border-strong)] bg-[var(--panel-bg)] shadow-[var(--shadow-soft)] lg:flex-row">
@@ -174,7 +219,7 @@ export default function LoginPage() {
                         <p className={`text-sm font-semibold uppercase tracking-[0.5em] text-[var(--text-muted)]`}>NotesGen OS</p>
                         <h1 className="mt-5 text-5xl font-semibold leading-tight text-[var(--text-primary)]">
                             Keep your ideas flowing with{" "}
-                            <span className={highlightGradient}>password or Gmail OTP</span> sign-in.
+                            <span className={highlightGradient}>password, Google, or Gmail OTP</span> sign-in.
                         </h1>
                         <p className="mt-4 max-w-lg text-lg text-[var(--text-muted)]">
                             Resume where you left off, sync every note across devices, and unlock Pro automations the second
@@ -317,6 +362,32 @@ export default function LoginPage() {
                                         className="w-full rounded-2xl bg-[var(--accent)] px-4 py-3 text-base font-semibold text-white shadow-lg transition hover:bg-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {isSubmitting ? "Signing in…" : loginMethod === "password" ? "Sign in securely" : "Verify OTP & sign in"}
+                                    </button>
+
+                                    <div className="relative py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-[var(--text-muted)]">
+                                        <span className="bg-[var(--panel-solid)] px-3">or</span>
+                                        <div className="pointer-events-none absolute inset-y-1/2 left-0 right-0 border-t border-dashed border-[var(--border-soft)]" />
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleGoogleSignIn}
+                                        disabled={isGoogleLoading}
+                                        className="flex w-full items-center justify-center gap-3 rounded-2xl border border-[var(--border-strong)] bg-white/80 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {isGoogleLoading ? (
+                                            "Connecting…"
+                                        ) : (
+                                            <>
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 5.5c1.49 0 2.53.64 3.11 1.18l2.27-2.21C15.85 3.52 14.1 2.75 12 2.75 8.69 2.75 5.88 4.64 4.51 7.5l2.86 2.22C7.88 7.65 9.68 5.5 12 5.5Z" fill="#EA4335" />
+                                                    <path d="M21.34 12.2c0-.73-.07-1.43-.2-2.1H12v3.98h5.24c-.23 1.2-.94 2.22-2 2.9l3.2 2.48c1.87-1.73 2.9-4.29 2.9-7.26Z" fill="#4285F4" />
+                                                    <path d="M7.37 13.72c-.24-.7-.38-1.45-.38-2.22 0-.77.13-1.52.37-2.22L4.5 7.06C3.82 8.47 3.44 10.16 3.44 11.5s.38 3.03 1.06 4.44l2.87-2.22Z" fill="#34A853" />
+                                                    <path d="M12 21.25c2.1 0 3.87-.69 5.17-1.88l-3.2-2.48c-.54.36-1.24.58-1.97.58-2.32 0-4.12-2.15-4.63-3.98l-2.87 2.22C5.88 19.36 8.69 21.25 12 21.25Z" fill="#FBBC05" />
+                                                </svg>
+                                                Continue with Google
+                                            </>
+                                        )}
                                     </button>
                                 </form>
                             ) : (
