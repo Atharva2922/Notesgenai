@@ -827,14 +827,22 @@ export default function Home() {
     setIsUploadingAttachment(true);
     try {
       const dataUrl = existingDataUrl || await readFileAsDataURL(file);
-      let aiResult = null;
+      let aiResult: Awaited<ReturnType<typeof analyzeImageNote>> | null = null;
 
       if (kind === 'photo') {
-        aiResult = await analyzeImageNote(
-          dataUrl,
-          file.type || 'image/png',
-          promptOverride?.trim() || 'Describe this image in detail and extract any visible text.'
-        );
+        try {
+          aiResult = await analyzeImageNote(
+            dataUrl,
+            file.type || 'image/png',
+            promptOverride?.trim() || 'Describe this image in detail and extract any visible text.'
+          );
+        } catch (error) {
+          console.error('Image analysis unavailable, falling back to raw upload.', error);
+          showToast(
+            'Image analysis is temporarily unavailable, but your photo will still be saved.',
+            'info'
+          );
+        }
       }
 
       const created = await createNote({
