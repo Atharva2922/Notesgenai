@@ -35,6 +35,7 @@ const TRENDING_TAGS = [
 type TrendingTag = typeof TRENDING_TAGS[number];
 
 const ONBOARDING_TIP_KEY = 'notesgen-onboarding-tip';
+const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024; // 2MB, keeps base64 under Vercel body limits
 
 export default function Home() {
   const router = useRouter();
@@ -816,6 +817,11 @@ export default function Home() {
   ) => {
     if (!userProfile?.slug) {
       showToast("Please log in to upload files.", "error");
+      return;
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      const mb = (MAX_ATTACHMENT_BYTES / (1024 * 1024)).toFixed(1);
+      showToast(`Attachments are limited to ${mb}MB. Please choose a smaller file.`, "error");
       return;
     }
     setIsUploadingAttachment(true);
