@@ -1,0 +1,2 @@
+{"exhaustive":{"nbHits":false,"typo":false},"exhaustiveNbHits":false,"exhaustiveTypo":false,"hits":[],"hitsPerPage":8,"nbHits":0,"nbPages":0,"page":0,"params":"query=AI+United+States+Canada+startup+Canada&tags=story&hitsPerPage=8&page=0&advancedSyntax=true&analyticsTags=backend","processingTimeMS":33,"processingTimingsMS":{"_request":{"roundTrip":18},"fetch":{"query":28,"total":29},"getIdx":{"load":{"gens":2,"total":3},"total":3},"total":33},"query":"AI United States Canada startup Canada","serverTimeMS":34}
+
