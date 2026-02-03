@@ -1002,9 +1002,11 @@ export default function Home() {
           />
 
           <main
-            className={`flex-1 p-4 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}
+            className={`flex-1 w-full p-4 sm:p-6 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}
           >
-            <div className="max-w-3xl mx-auto py-4 px-4 sm:px-0">
+            <div className="w-full max-w-6xl mx-auto flex flex-col xl:flex-row gap-6">
+              <section className="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto xl:mx-0">
+                <div className="py-4 px-2 sm:px-0">
               {/* Create Post Entry Box */}
               <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
                 {showOnboardingTip && (
@@ -1039,8 +1041,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pl-[3.25rem]">
-                  <div className="flex gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3 sm:pl-[3.25rem]">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => handleAttachmentButtonClick('photo')}
@@ -1069,7 +1071,7 @@ export default function Home() {
 
                   <Link
                     href="/create"
-                    className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-[0_12px_30px_rgba(79,70,229,0.35)] hover:shadow-[0_15px_35px_rgba(79,70,229,0.45)] transition-all flex items-center gap-2"
+                    className="w-full sm:w-auto justify-center bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-[0_12px_30px_rgba(79,70,229,0.35)] hover:shadow-[0_15px_35px_rgba(79,70,229,0.45)] transition-all flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -1316,82 +1318,92 @@ export default function Home() {
                   onClear={handleClearTrendingTag}
                 />
               </div>
+              </div>
+              </section>
+
+              <aside className="w-full xl:w-80 flex-shrink-0 space-y-4">
+                <div className="hidden xl:flex bg-white rounded-2xl border border-gray-200 shadow-xl flex-col h-[480px]">
+                  <div className="px-5 pt-5 pb-3 border-b border-gray-100">
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-600">AI Chatbot</p>
+                    <h3 className="text-xl font-bold text-gray-900">Need a second brain?</h3>
+                    <p className="text-sm text-gray-500">Ask the bot to refine, summarize, or brainstorm using your notes.</p>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/60">
+                    {chatMessages.map(message => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${message.sender === 'user'
+                            ? 'bg-blue-600 text-white rounded-br-none'
+                            : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'}`}
+                        >
+                          <p className="whitespace-pre-line leading-relaxed">{message.text}</p>
+                          <span className={`block text-[10px] mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>{message.timestamp}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <form
+                    className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      handleChatSend();
+                    }}
+                  >
+                    <textarea
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Ask me to summarize, rephrase, or ideate..."
+                      rows={2}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none"
+                      disabled={isChatSending}
+                    />
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] text-gray-400">Uses latest note context</span>
+                      <button
+                        type="submit"
+                        disabled={isChatSending}
+                        className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 shadow ${isChatSending ? 'bg-blue-200 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                      >
+                        {isChatSending && <span className="w-3.5 h-3.5 border-2 border-white/70 border-t-transparent rounded-full animate-spin"></span>}
+                        {isChatSending ? 'Sending' : 'Send'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <TrendingTagsPanel
+                  tags={TRENDING_TAGS}
+                  activeTag={activeTrendingTag}
+                  onTagSelect={handleTrendingTagClick}
+                  onClear={handleClearTrendingTag}
+                />
+
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 space-y-3">
+                  <h3 className="text-sm font-bold text-gray-900">Stay organized anywhere</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    NotesGen adapts to phones, tablets, and large desktops. Keep these quick tips in mind when you're on smaller screens.
+                  </p>
+                  <ul className="text-xs text-gray-600 space-y-2">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 text-blue-500">●</span>
+                      Collapse the sidebar from the menu icon for more canvas space.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 text-purple-500">●</span>
+                      Use trending tags to jump to popular topics without scrolling.
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-0.5 text-emerald-500">●</span>
+                      Bulk actions hide behind the “Select Notes” button when room is tight.
+                    </li>
+                  </ul>
+                </div>
+              </aside>
             </div>
           </main>
-
-          {/* Right Sidebar */}
-          <aside className="hidden xl:block w-80 p-4 space-y-4">
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-xl flex flex-col h-[480px]">
-              <div className="px-5 pt-5 pb-3 border-b border-gray-100">
-                <p className="text-xs font-bold uppercase tracking-widest text-blue-600">AI Chatbot</p>
-                <h3 className="text-xl font-bold text-gray-900">Need a second brain?</h3>
-                <p className="text-sm text-gray-500">Ask the bot to refine, summarize, or brainstorm using your notes.</p>
-              </div>
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/60">
-                {chatMessages.map(message => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${message.sender === 'user'
-                        ? 'bg-blue-600 text-white rounded-br-none'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'}`}
-                    >
-                      <p className="whitespace-pre-line leading-relaxed">{message.text}</p>
-                      <span className={`block text-[10px] mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>{message.timestamp}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <form
-                className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  handleChatSend();
-                }}
-              >
-                <textarea
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="Ask me to summarize, rephrase, or ideate..."
-                  rows={2}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none"
-                  disabled={isChatSending}
-                />
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] text-gray-400">Uses latest note context</span>
-                  <button
-                    type="submit"
-                    disabled={isChatSending}
-                    className={`px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-2 shadow ${isChatSending ? 'bg-blue-200 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                  >
-                    {isChatSending && <span className="w-3.5 h-3.5 border-2 border-white/70 border-t-transparent rounded-full animate-spin"></span>}
-                    {isChatSending ? 'Sending' : 'Send'}
-                  </button>
-                </div>
-              </form>
-            </div>
-
-            <TrendingTagsPanel
-              tags={TRENDING_TAGS}
-              activeTag={activeTrendingTag}
-              onTagSelect={handleTrendingTagClick}
-              onClear={handleClearTrendingTag}
-            />
-
-            <div className="sticky top-20 text-[10px] text-gray-400 px-4">
-              <div className="flex flex-wrap gap-x-2 gap-y-1 mb-2">
-                <a href="#" className="hover:underline">User Agreement</a>
-                <a href="#" className="hover:underline">Privacy Policy</a>
-                <a href="#" className="hover:underline">Content Policy</a>
-                <a href="#" className="hover:underline">Moderator Code of Conduct</a>
-              </div>
-              <div className="pt-2 border-t border-gray-200">
-                AI Notes Gen Inc &copy; 2024. All rights reserved
-              </div>
-            </div>
-          </aside>
         </div>
 
         {/* Note Modal Overlay */}
