@@ -19,9 +19,10 @@ interface NoteCardProps {
 
 const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onAssign, selectionMode = false, selected = false, onSelectToggle, notify }) => {
     // Check if attachments exist at all (they're excluded from list view for performance)
-    const hasAttachments = note.attachments && note.attachments.length > 0;
-    const imageAttachment = hasAttachments ? note.attachments.find(att => att?.type?.startsWith('image')) : undefined;
-    const otherAttachments = hasAttachments ? note.attachments.filter(att => !att?.type?.startsWith('image')) : [];
+    const attachments = note.attachments ?? [];
+    const hasAttachments = attachments.length > 0;
+    const imageAttachment = hasAttachments ? attachments.find(att => att?.type?.startsWith('image')) : undefined;
+    const otherAttachments = hasAttachments ? attachments.filter(att => !att?.type?.startsWith('image')) : [];
     const noteTags = note.tags ?? [];
 
     const notifyUser = (message: string, type: ToastLevel = "info") => {
