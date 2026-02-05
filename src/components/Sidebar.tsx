@@ -139,7 +139,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     }, [isOpenMobile]);
 
     const sidebarClasses = `
-        fixed top-14 bottom-0 bg-white border-r border-gray-200 overflow-y-auto 
+        fixed top-14 bottom-0 bg-[var(--panel-solid)] border-r border-[var(--border-soft)] overflow-y-auto 
         z-40 transition-all duration-300 ease-in-out
         ${isOpenMobile ? 'left-0 shadow-2xl' : '-left-full lg:left-0'} 
         ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}
@@ -164,12 +164,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="p-2 h-full flex flex-col">
                     <div className="mb-4 px-2 relative h-8 flex items-center justify-between">
                         {!isCollapsed && (
-                            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide leading-8">Dashboard</span>
+                            <span className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide leading-8">Dashboard</span>
                         )}
                         {/* Desktop collapse button */}
                         <button
                             onClick={toggleCollapse}
-                            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg border border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900 transition-all ml-auto"
+                            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg border border-[var(--border-soft)] hover:border-[var(--border-strong)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all ml-auto"
                             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                         >
                             {isCollapsed ? (
@@ -182,7 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         {isOpenMobile && (
                             <button
                                 onClick={onCloseMobile}
-                                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 hover:bg-gray-100 text-gray-600"
+                                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg border border-[var(--border-soft)] hover:bg-[var(--input-bg)] text-[var(--text-muted)]"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
@@ -197,10 +197,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 href={item.href}
                                 title={isCollapsed ? item.label : undefined}
                                 onClick={onCloseMobile}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all group ${pathname === item.href ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-gray-100 text-gray-700'
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-all group ${pathname === item.href ? 'bg-blue-50 text-blue-700 font-bold' : 'hover:bg-[var(--input-bg)] text-[var(--text-primary)]'
                                     } ${isCollapsed && !isOpenMobile ? 'justify-center px-2' : ''}`}
                             >
-                                <svg className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${pathname === item.href ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className={`w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110 ${pathname === item.href ? 'text-blue-600' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                                 </svg>
                                 {(!isCollapsed || isOpenMobile) && (
@@ -214,7 +214,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {(!isCollapsed || isOpenMobile) && hasCollections && (
                         <>
                             <div className="mt-4 px-4">
-                                <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">My Collections</h3>
+                                <h3 className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">My Collections</h3>
                                 <div className="space-y-1">
                                     {collections.map((collection) => {
                                         const count = noteCounts[collection.label] ?? 0;
@@ -222,20 +222,20 @@ const Sidebar: React.FC<SidebarProps> = ({
                                         return (
                                             <div key={collection.label} className="flex items-center gap-2">
                                                 <button
-                                                    className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all text-left group ${isActive ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-100'}`}
+                                                    className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all text-left group ${isActive ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-[var(--text-primary)] hover:bg-[var(--input-bg)]'}`}
                                                     onClick={() => onCollectionSelect?.(collection)}
                                                 >
                                                     <div className={`w-5 h-5 rounded flex items-center justify-center font-bold text-xs flex-shrink-0 transition-all ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600 group-hover:bg-blue-200 group-hover:scale-110'}`}>
                                                         {collection.label.charAt(0)}
                                                     </div>
                                                     <span className="truncate flex-1">{collection.label}</span>
-                                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[1.75rem] text-center transition-colors ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'bg-gray-50 text-gray-500'}`}>
+                                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full min-w-[1.75rem] text-center transition-colors ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'bg-[var(--input-bg)] text-[var(--text-muted)]'}`}>
                                                         {count}
                                                     </span>
                                                 </button>
                                                 {!collection.readonly && (
                                                     <button
-                                                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                                         onClick={() => onCollectionDelete?.(collection)}
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +249,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                                     <div className="flex items-center gap-2 pt-2">
                                         <button
-                                            className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-100 transition-colors text-left font-medium group"
+                                            className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-[var(--text-muted)] hover:bg-[var(--input-bg)] transition-colors text-left font-medium group"
                                             onClick={onRequestCreateCollection}
                                         >
                                             <svg className="w-4 h-4 flex-shrink-0 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,19 +268,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="mt-auto px-4 border-t border-gray-100 pt-6 pb-4">
-                                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200 hover:shadow-md transition-shadow">
-                                    <h4 className="font-bold text-sm text-orange-900 mb-1">Go Premium</h4>
-                                    <p className="text-xs text-orange-800 mb-3 opacity-80 line-clamp-2">Unlimited AI generations, PDF exports, and sync across devices.</p>
-                                    <button
-                                        className="w-full bg-orange-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-orange-700 transition-all shadow-sm hover:translate-y-[-1px]"
-                                        onClick={onUpgrade}
-                                    >
-                                        Upgrade Now
-                                    </button>
-                                </div>
-                            </div>
                         </>
                     )}
 
@@ -289,10 +276,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                         <div className="mt-auto pb-4 flex justify-center">
                             <button
                                 onClick={toggleCollapse}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors group"
+                                className="p-2 hover:bg-[var(--input-bg)] rounded-lg transition-colors group"
                                 title="Expand sidebar"
                             >
-                                <svg className="w-5 h-5 text-gray-600 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-[var(--text-muted)] group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
                                 </svg>
                             </button>

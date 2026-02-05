@@ -90,26 +90,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onUpgrade, onMobileMenuClick 
 
         <div className="flex items-center gap-3 ml-4">
           <button
-            onClick={toggleTheme}
-            className="px-3 py-1.5 rounded-full text-sm font-semibold border border-[var(--border-strong)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-2"
-            aria-label="Toggle color theme"
-          >
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.6}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 3v2m0 14v2m7-9h2M3 12H1m16.95 6.95-1.414-1.414M6.464 6.464 5.05 5.05m13.9 0-1.414 1.414M6.464 17.536 5.05 18.95M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-              />
-            </svg>
-            {theme === "light" ? "Light" : "Dark"}
-          </button>
-          <button
             onClick={() => onUpgrade?.()}
             className="px-4 py-1.5 rounded-full text-sm font-semibold bg-[var(--accent)] text-white hover:bg-[color-mix(in_srgb,var(--accent)_80%,black)] transition-colors"
           >
@@ -139,6 +119,26 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, onUpgrade, onMobileMenuClick 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   Edit Profile
+                </button>
+                <button
+                  onClick={() => { toggleTheme(); setIsDropdownOpen(false); }}
+                  className="w-full text-left px-4 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--input-bg)] flex items-center gap-2"
+                >
+                  {theme === "light" ? (
+                    <>
+                      <svg className="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                      </svg>
+                      Dark Mode
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      Light Mode
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={handleLogout}

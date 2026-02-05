@@ -739,6 +739,11 @@ const exitSelectionMode = () => {
   setSelectionMode(false);
 };
 
+const handleSelectAll = () => {
+  const allIds = filteredNotes.map(note => note.id);
+  setSelectedNotes(new Set(allIds));
+};
+
 const selectedCount = selectedNotes.size;
 const hasSelection = selectedCount > 0;
 
@@ -1006,10 +1011,10 @@ const filteredNotes = notes
 // Show loading state while checking authentication
 if (isAuthChecking) {
   return (
-    <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
+    <div className="min-h-screen bg-[var(--page-bg)] flex items-center justify-center">
       <div className="text-center">
         <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-gray-600 font-medium">Loading...</p>
+        <p className="text-[var(--text-muted)] font-medium">Loading...</p>
       </div>
     </div>
   );
@@ -1022,7 +1027,7 @@ if (!userProfile) {
 
 return (
   <>
-    <div className="min-h-screen bg-[#f0f2f5] pt-14">
+    <div className="min-h-screen bg-[var(--page-bg)] pt-14">
       <Navbar
         onSearch={(query) => {
           setSearchQuery(query);
@@ -1061,10 +1066,10 @@ return (
             <section className="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto xl:mx-0">
               <div className="py-4 px-2 sm:px-0">
                 {/* Create Post Entry Box */}
-                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
+                <div className="bg-[var(--panel-solid)] border border-[var(--border-soft)] rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
                   {showOnboardingTip && (
                     <div className="absolute -top-10 left-16 hidden sm:flex flex-col items-center">
-                      <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-3">
+                      <div className="bg-[var(--text-primary)] text-[var(--panel-solid)] text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-3">
                         <span>Start here — your first AI note</span>
                         <button
                           type="button"
@@ -1075,21 +1080,21 @@ return (
                           ×
                         </button>
                       </div>
-                      <span className="w-3 h-3 bg-gray-900 rotate-45 -mt-1"></span>
+                      <span className="w-3 h-3 bg-[var(--text-primary)] rotate-45 -mt-1"></span>
                     </div>
                   )}
                   <div className="flex gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-[var(--border-soft)] flex-shrink-0">
                       <img src={userProfile?.picture || "https://picsum.photos/seed/user/40/40"} alt="avatar" className="rounded-full" />
                     </div>
                     <div className="flex-1">
                       <Link
                         href="/create"
                         onClick={handleDismissOnboardingTip}
-                        className="block w-full bg-gradient-to-r from-gray-100/70 to-white hover:from-white hover:to-gray-50 rounded-xl border border-blue-200/70 hover:border-blue-400 px-4 py-3 transition-all cursor-pointer text-left group shadow-[0_10px_30px_rgba(59,130,246,0.08)]"
+                        className="block w-full bg-gradient-to-r from-[var(--input-bg)] to-[var(--panel-solid)] hover:from-[var(--panel-solid)] hover:to-[var(--input-bg)] rounded-xl border border-[var(--border-strong)]/70 hover:border-[var(--accent)] px-4 py-3 transition-all cursor-pointer text-left group shadow-[0_10px_30px_rgba(59,130,246,0.08)]"
                       >
-                        <span className="text-gray-900 font-semibold block mb-1 group-hover:text-blue-600 transition-colors">New idea or transcript?</span>
-                        <span className="text-xs text-gray-500 block">Paste a transcript, meeting notes, or rough ideas — AI will structure it.</span>
+                        <span className="text-[var(--text-primary)] font-semibold block mb-1 group-hover:text-[var(--accent)] transition-colors">New idea or transcript?</span>
+                        <span className="text-xs text-[var(--text-muted)] block">Paste a transcript, meeting notes, or rough ideas — AI will structure it.</span>
                       </Link>
                     </div>
                   </div>
@@ -1099,7 +1104,7 @@ return (
                       <button
                         type="button"
                         onClick={() => handleAttachmentButtonClick('photo')}
-                        className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
+                        className="p-2 hover:bg-[var(--input-bg)] rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
                         title="Upload Photo"
                         disabled={isUploadingAttachment}
                       >
@@ -1111,7 +1116,7 @@ return (
                       <button
                         type="button"
                         onClick={() => handleAttachmentButtonClick('file')}
-                        className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
+                        className="p-2 hover:bg-[var(--input-bg)] rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
                         title="Attach File"
                         disabled={isUploadingAttachment}
                       >
@@ -1149,37 +1154,37 @@ return (
                 </div>
 
                 {pendingPhotoData && (
-                  <div className="bg-white border border-blue-200 rounded-xl p-4 mb-4 shadow-md">
+                  <div className="bg-[var(--panel-solid)] border border-blue-200/50 rounded-xl p-4 mb-4 shadow-md">
                     <div className="flex flex-col sm:flex-row gap-4">
                       <div className="sm:w-48 w-full">
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="border border-[var(--border-soft)] rounded-lg overflow-hidden">
                           <img
                             src={pendingPhotoData.dataUrl}
                             alt={pendingPhotoData.file.name || 'Selected photo'}
                             className="w-full h-48 object-cover"
                           />
                         </div>
-                        <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                        <p className="text-xs text-[var(--text-muted)] mt-2 line-clamp-2">
                           {pendingPhotoData.file.name} &middot; {(pendingPhotoData.file.size / 1024).toFixed(1)} KB
                         </p>
                       </div>
                       <div className="flex-1 flex flex-col gap-3">
                         <div>
-                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                          <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-2 block">
                             Photo Instruction
                           </label>
                           <textarea
                             value={photoPrompt}
                             onChange={(e) => setPhotoPrompt(e.target.value)}
                             placeholder="Describe what you want the AI to extract from this photo..."
-                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
+                            className="w-full border border-[var(--border-soft)] bg-[var(--panel-solid)] text-[var(--text-primary)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
                           />
                         </div>
                         <div className="flex flex-wrap gap-2 justify-end">
                           <button
                             type="button"
                             onClick={handleCancelPhotoUpload}
-                            className="px-4 py-2 rounded-full border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50"
+                            className="px-4 py-2 rounded-full border border-[var(--border-soft)] text-[var(--text-muted)] text-sm font-semibold hover:bg-[var(--input-bg)]"
                             disabled={isUploadingAttachment}
                           >
                             Cancel
@@ -1207,7 +1212,7 @@ return (
                     {['Best', 'New', 'Top'].map((sortOption) => (
                       <button
                         key={sortOption}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border ${sortOption === 'New' ? 'bg-white border-gray-300 text-blue-600 ring-1 ring-blue-500' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold border ${sortOption === 'New' ? 'bg-[var(--panel-solid)] border-[var(--border-strong)] text-[var(--accent)] ring-1 ring-[var(--accent)]' : 'bg-[var(--panel-solid)] border-[var(--border-soft)] text-[var(--text-muted)] hover:bg-[var(--input-bg)]'
                           }`}
                       >
                         {sortOption}
@@ -1217,7 +1222,7 @@ return (
                   <button
                     type="button"
                     onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 ${selectionMode ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 ${selectionMode ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-[var(--panel-solid)] border-[var(--border-soft)] text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       {selectionMode ? (
@@ -1239,9 +1244,20 @@ return (
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
+                        onClick={handleSelectAll}
+                        disabled={isPerformingBulk || selectedCount === filteredNotes.length}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${selectedCount === filteredNotes.length ? 'bg-[var(--input-bg)] text-[var(--border-strong)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-green-700 border border-green-200 hover:bg-green-100'}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Select All
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleBulkPin(true)}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-blue-700 border border-blue-200 hover:bg-blue-100'}`}
                       >
                         Pin
                       </button>
@@ -1249,7 +1265,7 @@ return (
                         type="button"
                         onClick={() => handleBulkPin(false)}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-[var(--text-primary)] border border-[var(--border-soft)] hover:bg-[var(--input-bg)]'}`}
                       >
                         Unpin
                       </button>
@@ -1261,7 +1277,7 @@ return (
                           setGroupNameInput('');
                         }}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-violet-700 border border-violet-200 hover:bg-violet-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-violet-700 border border-violet-200 hover:bg-violet-100'}`}
                       >
                         Group
                       </button>
@@ -1279,7 +1295,7 @@ return (
                           <button
                             type="button"
                             onClick={() => setIsGroupNaming(false)}
-                            className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                            className="px-2 py-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                           >
                             Cancel
                           </button>
@@ -1287,7 +1303,7 @@ return (
                             type="button"
                             onClick={handleBulkGroup}
                             disabled={!groupNameInput.trim() || isPerformingBulk}
-                            className={`px-3 py-1 text-xs font-bold rounded-full ${!groupNameInput.trim() || isPerformingBulk ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' : 'bg-violet-600 text-white border border-violet-600 hover:bg-violet-700'}`}
+                            className={`px-3 py-1 text-xs font-bold rounded-full ${!groupNameInput.trim() || isPerformingBulk ? 'bg-[var(--input-bg)] text-[var(--border-strong)] border border-[var(--border-soft)] cursor-not-allowed' : 'bg-violet-600 text-white border border-violet-600 hover:bg-violet-700'}`}
                           >
                             Apply
                           </button>
@@ -1297,7 +1313,7 @@ return (
                         type="button"
                         onClick={handleBulkDelete}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-red-500 text-white border border-red-500 hover:bg-red-600'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-red-500 text-white border border-red-500 hover:bg-red-600'}`}
                       >
                         Delete
                       </button>
@@ -1310,15 +1326,15 @@ return (
                   {isLoading ? (
                     <div className="text-center py-20">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-500">Loading your notes...</p>
+                      <p className="text-[var(--text-muted)]">Loading your notes...</p>
                     </div>
                   ) : filteredNotes.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-                      <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="text-center py-20 bg-[var(--panel-solid)] rounded-xl border border-[var(--border-soft)]">
+                      <svg className="w-16 h-16 text-[var(--border-strong)] mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <h3 className="text-lg font-bold text-gray-600">No notes yet</h3>
-                      <p className="text-gray-400 mb-6">Start by creating your first AI note!</p>
+                      <h3 className="text-lg font-bold text-[var(--text-muted)]">No notes yet</h3>
+                      <p className="text-[var(--text-muted)] mb-6">Start by creating your first AI note!</p>
                       <Link
                         href="/create"
                         className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold hover:bg-blue-700 transition-colors inline-block"
@@ -1375,13 +1391,13 @@ return (
             </section>
 
             <aside className="w-full xl:w-80 flex-shrink-0 space-y-4">
-              <div className="hidden xl:flex bg-white rounded-2xl border border-gray-200 shadow-xl flex-col h-[480px]">
-                <div className="px-5 pt-5 pb-3 border-b border-gray-100">
+              <div className="hidden xl:flex bg-[var(--panel-solid)] rounded-2xl border border-[var(--border-soft)] shadow-xl flex-col h-[480px]">
+                <div className="px-5 pt-5 pb-3 border-b border-[var(--border-soft)]">
                   <p className="text-xs font-bold uppercase tracking-widest text-blue-600">AI Chatbot</p>
-                  <h3 className="text-xl font-bold text-gray-900">Need a second brain?</h3>
-                  <p className="text-sm text-gray-500">Ask the bot to refine, summarize, or brainstorm using your notes.</p>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)]">Need a second brain?</h3>
+                  <p className="text-sm text-[var(--text-muted)]">Ask the bot to refine, summarize, or brainstorm using your notes.</p>
                 </div>
-                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50/60">
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[var(--input-bg)]/60">
                   {chatMessages.map(message => (
                     <div
                       key={message.id}
@@ -1390,16 +1406,16 @@ return (
                       <div
                         className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm shadow-sm ${message.sender === 'user'
                           ? 'bg-blue-600 text-white rounded-br-none'
-                          : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'}`}
+                          : 'bg-[var(--panel-solid)] text-[var(--text-primary)] border border-[var(--border-soft)] rounded-bl-none'}`}
                       >
                         <p className="whitespace-pre-line leading-relaxed">{message.text}</p>
-                        <span className={`block text-[10px] mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>{message.timestamp}</span>
+                        <span className={`block text-[10px] mt-1 ${message.sender === 'user' ? 'text-blue-100' : 'text-[var(--text-muted)]'}`}>{message.timestamp}</span>
                       </div>
                     </div>
                   ))}
                 </div>
                 <form
-                  className="px-4 pb-4 pt-2 border-t border-gray-100 space-y-2"
+                  className="px-4 pb-4 pt-2 border-t border-[var(--border-soft)] space-y-2"
                   onSubmit={(event) => {
                     event.preventDefault();
                     handleChatSend();
@@ -1410,11 +1426,11 @@ return (
                     onChange={(e) => setChatInput(e.target.value)}
                     placeholder="Ask me to summarize, rephrase, or ideate..."
                     rows={2}
-                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none"
+                    className="w-full border border-[var(--border-soft)] rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--panel-solid)] text-[var(--text-primary)] resize-none"
                     disabled={isChatSending}
                   />
                   <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-gray-400">Uses latest note context</span>
+                    <span className="text-[11px] text-[var(--text-muted)]">Uses latest note context</span>
                     <button
                       type="submit"
                       disabled={isChatSending}
@@ -1434,12 +1450,12 @@ return (
                 onClear={handleClearTrendingTag}
               />
 
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 space-y-3">
-                <h3 className="text-sm font-bold text-gray-900">Stay organized anywhere</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">
+              <div className="bg-[var(--panel-solid)] border border-[var(--border-soft)] rounded-2xl shadow-sm p-5 space-y-3">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">Stay organized anywhere</h3>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                   NotesGen adapts to phones, tablets, and large desktops. Keep these quick tips in mind when you're on smaller screens.
                 </p>
-                <ul className="text-xs text-gray-600 space-y-2">
+                <ul className="text-xs text-[var(--text-muted)] space-y-2">
                   <li className="flex items-start gap-2">
                     <span className="mt-0.5 text-blue-500">●</span>
                     Collapse the sidebar from the menu icon for more canvas space.
@@ -1471,14 +1487,14 @@ return (
     </div>
     {isCollectionModalOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 space-y-4">
+        <div className="w-full max-w-md bg-[var(--panel-solid)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">New Collection</h3>
-              <p className="text-sm text-gray-500">Group notes with a custom label and tag.</p>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">New Collection</h3>
+              <p className="text-sm text-[var(--text-muted)]">Group notes with a custom label and tag.</p>
             </div>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50"
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-[var(--border-soft)] text-[var(--text-muted)] hover:bg-[var(--input-bg)]"
               onClick={handleCloseCollectionModal}
               aria-label="Close"
             >
@@ -1490,25 +1506,25 @@ return (
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Collection name</label>
+              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Collection name</label>
               <input
                 type="text"
                 value={collectionForm.label}
                 onChange={(e) => setCollectionForm(prev => ({ ...prev, label: e.target.value }))}
-                className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-full border border-[var(--border-soft)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--panel-solid)] text-[var(--text-primary)]"
                 placeholder="e.g. Marketing Reviews"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Tag slug (optional)</label>
+              <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Tag slug (optional)</label>
               <input
                 type="text"
                 value={collectionForm.tag}
                 onChange={(e) => setCollectionForm(prev => ({ ...prev, tag: e.target.value }))}
-                className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="mt-1 w-full border border-[var(--border-soft)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--panel-solid)] text-[var(--text-primary)]"
                 placeholder="Used for filters, e.g. marketing"
               />
-              <p className="text-[11px] text-gray-500 mt-1">Leave blank to auto-generate from the name.</p>
+              <p className="text-[11px] text-[var(--text-muted)] mt-1">Leave blank to auto-generate from the name.</p>
             </div>
           </div>
 
@@ -1518,7 +1534,7 @@ return (
 
           <div className="flex justify-end gap-3 pt-1">
             <button
-              className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               onClick={handleCloseCollectionModal}
             >
               Cancel
@@ -1536,14 +1552,14 @@ return (
 
     {isAssignModalOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm p-4" role="dialog" aria-modal="true">
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 space-y-4">
+        <div className="w-full max-w-sm bg-[var(--panel-solid)] rounded-2xl shadow-2xl border border-[var(--border-soft)] p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Move to collection</h3>
-              <p className="text-sm text-gray-500">Select where this note should live.</p>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Move to collection</h3>
+              <p className="text-sm text-[var(--text-muted)]">Select where this note should live.</p>
             </div>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:bg-gray-50"
+              className="w-8 h-8 flex items-center justify-center rounded-full border border-[var(--border-soft)] text-[var(--text-muted)] hover:bg-[var(--input-bg)]"
               onClick={handleCloseAssignModal}
               aria-label="Close"
             >
@@ -1554,11 +1570,11 @@ return (
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Collection</label>
+            <label className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Collection</label>
             <select
               value={selectedAssignCollection}
               onChange={(e) => setSelectedAssignCollection(e.target.value)}
-              className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="mt-1 w-full border border-[var(--border-soft)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-[var(--panel-solid)] text-[var(--text-primary)]"
             >
               {collections.map(collection => (
                 <option key={collection.label} value={collection.label}>{collection.label}</option>
@@ -1572,7 +1588,7 @@ return (
 
           <div className="flex justify-end gap-3 pt-1">
             <button
-              className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-900"
+              className="px-4 py-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               onClick={handleCloseAssignModal}
               disabled={isAssigningNote}
             >
@@ -1618,11 +1634,11 @@ interface TrendingTagsPanelProps {
 
 function TrendingTagsPanel({ className = '', tags, activeTag, onTagSelect, onClear }: TrendingTagsPanelProps) {
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 shadow-sm space-y-4 ${className}`}>
+    <div className={`bg-[var(--panel-solid)] rounded-xl border border-[var(--border-soft)] p-4 shadow-sm space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Trending Tags</h4>
-          <p className="text-xs text-gray-400 mt-1">Explore popular AI-generated notes</p>
+          <h4 className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wide">Trending Tags</h4>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Explore popular AI-generated notes</p>
         </div>
         {activeTag && (
           <button
@@ -1642,11 +1658,11 @@ function TrendingTagsPanel({ className = '', tags, activeTag, onTagSelect, onCle
               key={tag.label}
               type="button"
               onClick={() => onTagSelect(tag)}
-              className={`w-full flex items-center justify-between group text-left px-2 py-1 rounded-lg transition-all ${isActive ? 'bg-blue-50 ring-1 ring-blue-200' : 'hover:bg-gray-50'}`}
+              className={`w-full flex items-center justify-between group text-left px-2 py-1 rounded-lg transition-all ${isActive ? 'bg-blue-50 ring-1 ring-blue-200' : 'hover:bg-[var(--input-bg)]'}`}
             >
               <div>
-                <div className={`text-sm font-bold ${isActive ? 'text-blue-700' : 'text-gray-800'} group-hover:underline`}>{tag.label}</div>
-                <div className="text-[10px] text-gray-500 flex items-center gap-1">
+                <div className={`text-sm font-bold ${isActive ? 'text-blue-700' : 'text-[var(--text-primary)]'} group-hover:underline`}>{tag.label}</div>
+                <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
                   <HydrationSafeRandomCount />
                   <span>· {tag.helper}</span>
                 </div>

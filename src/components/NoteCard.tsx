@@ -79,13 +79,13 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
 
     return (
         <div
-            className={`relative bg-white border border-gray-200 hover:border-gray-400 rounded-xl transition-all cursor-pointer overflow-hidden group mb-3 shadow-sm ${selectionMode && selected ? 'ring-2 ring-blue-400 border-blue-300' : ''}`}
+            className={`relative bg-[var(--panel-solid)] border border-[var(--border-soft)] hover:border-[var(--border-strong)] rounded-xl transition-all cursor-pointer overflow-hidden group mb-3 shadow-sm ${selectionMode && selected ? 'ring-2 ring-[var(--accent)] border-[var(--accent)]' : ''}`}
             onClick={handleCardClick}
         >
             {selectionMode && (
                 <button
                     type="button"
-                    className={`absolute top-3 left-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors z-20 ${selected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-transparent'}`}
+                    className={`absolute top-3 left-3 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors z-20 ${selected ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : 'bg-[var(--panel-solid)] border-[var(--border-strong)] text-transparent'}`}
                     aria-pressed={selected}
                     aria-label={selected ? 'Deselect note' : 'Select note'}
                     onClick={(e) => {
@@ -100,25 +100,25 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
             )}
             <div className="flex">
                 {/* Votes Section (Decorative for Theme) */}
-                <div className="hidden sm:flex flex-col items-center p-2 bg-gray-50 w-12 gap-1 border-r border-gray-100">
-                    <svg className="w-5 h-5 text-gray-400 hover:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="hidden sm:flex flex-col items-center p-2 bg-[var(--input-bg)] w-12 gap-1 border-r border-[var(--border-soft)]">
+                    <svg className="w-5 h-5 text-[var(--text-muted)] hover:text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                     </svg>
-                    <span className="text-xs font-bold text-gray-700">AI</span>
-                    <svg className="w-5 h-5 text-gray-400 hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="text-xs font-bold text-[var(--text-primary)]">AI</span>
+                    <svg className="w-5 h-5 text-[var(--text-muted)] hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                 </div>
 
                 <div className="flex-1 p-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:underline">{note.title}</h3>
+                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:underline">{note.title}</h3>
 
-                    <p className="text-gray-600 text-sm line-clamp-3 mb-3 leading-relaxed">
+                    <p className="text-[var(--text-muted)] text-sm line-clamp-3 mb-3 leading-relaxed">
                         {note.summary}
                     </p>
 
                     {imageAttachment && (
-                        <div className="mb-4 border border-gray-100 rounded-lg overflow-hidden bg-gray-50 relative">
+                        <div className="mb-4 border border-[var(--border-soft)] rounded-lg overflow-hidden bg-[var(--input-bg)] relative">
                             {imageAttachment.data ? (
                                 <img
                                     src={imageAttachment.data}
@@ -127,7 +127,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                     loading="lazy"
                                 />
                             ) : (
-                                <div className="w-full h-32 flex flex-col items-center justify-center text-gray-400 gap-2">
+                                <div className="w-full h-32 flex flex-col items-center justify-center text-[var(--text-muted)] gap-2">
                                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -145,7 +145,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                     href={att?.data?.startsWith('data:') ? att.data : undefined}
                                     download={att?.name || `attachment-${idx + 1}`}
                                     onClick={(e) => att?.data ? e.stopPropagation() : undefined}
-                                    className="text-[11px] font-semibold px-3 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 transition"
+                                    className="text-[11px] font-semibold px-3 py-1 rounded-full border border-[var(--border-soft)] bg-[var(--input-bg)] text-[var(--text-muted)] hover:bg-[var(--border-soft)] transition"
                                 >
                                     {att?.name || `Attachment ${idx + 1}`}
                                 </a>
@@ -155,16 +155,16 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
 
                     <div className="flex flex-wrap gap-2 mb-4">
                         {noteTags.map(tag => (
-                            <span key={tag} className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-gray-200">
+                            <span key={tag} className="bg-[var(--input-bg)] text-[var(--text-muted)] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[var(--border-soft)]">
                                 #{tag}
                             </span>
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-4 border-t border-gray-50 pt-3">
+                    <div className="flex items-center gap-4 border-t border-[var(--border-soft)] pt-3">
                         <button
                             type="button"
-                            className="flex items-center gap-1.5 text-gray-500 hover:bg-gray-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onClick();
@@ -179,7 +179,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                         {/* Copy Action */}
                         <button
                             onClick={handleCopy}
-                            className="flex items-center gap-1.5 text-gray-500 hover:bg-gray-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -193,7 +193,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                     e.stopPropagation();
                                     onAssign(note);
                                 }}
-                                className="flex items-center gap-1.5 text-gray-500 hover:bg-gray-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                                className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7a2 2 0 012-2h10a2 2 0 012 2v12l-4-2-4 2-4-2V7z" />
@@ -208,7 +208,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                 e.stopPropagation();
                                 onPin && onPin(note.id, !note.isPinned);
                             }}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs font-bold ${note.isPinned ? 'text-green-600 bg-green-50' : 'text-gray-500 hover:bg-gray-100'}`}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs font-bold ${note.isPinned ? 'text-green-600 bg-green-50' : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
                         >
                             <svg className="w-4 h-4" fill={note.isPinned ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -222,7 +222,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                 e.stopPropagation();
                                 onDelete && onDelete(note.id);
                             }}
-                            className="flex items-center gap-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 px-2 py-1 rounded transition-colors text-xs font-bold ml-auto"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-red-50 hover:text-red-600 px-2 py-1 rounded transition-colors text-xs font-bold ml-auto"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
