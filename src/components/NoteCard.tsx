@@ -110,8 +110,8 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                     </svg>
                 </div>
 
-                <div className="flex-1 p-4">
-                    <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:underline">{note.title}</h3>
+                <div className="flex-1 p-3 sm:p-4">
+                    <h3 className="text-base sm:text-lg font-bold text-[var(--text-primary)] mb-1 group-hover:underline line-clamp-2">{note.title}</h3>
 
                     <p className="text-[var(--text-muted)] text-sm line-clamp-3 mb-3 leading-relaxed">
                         {note.summary}
@@ -161,10 +161,10 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-4 border-t border-[var(--border-soft)] pt-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 border-t border-[var(--border-soft)] pt-3">
                         <button
                             type="button"
-                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1.5 rounded transition-colors text-xs font-bold"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onClick();
@@ -179,7 +179,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                         {/* Copy Action */}
                         <button
                             onClick={handleCopy}
-                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1.5 rounded transition-colors text-xs font-bold"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -193,7 +193,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                     e.stopPropagation();
                                     onAssign(note);
                                 }}
-                                className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1 rounded transition-colors text-xs font-bold"
+                                className="hidden sm:flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-[var(--input-bg)] px-2 py-1.5 rounded transition-colors text-xs font-bold"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7a2 2 0 012-2h10a2 2 0 012 2v12l-4-2-4 2-4-2V7z" />
@@ -208,7 +208,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                 e.stopPropagation();
                                 onPin && onPin(note.id, !note.isPinned);
                             }}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs font-bold ${note.isPinned ? 'text-green-600 bg-green-50' : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
+                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded transition-colors text-xs font-bold ${note.isPinned ? 'text-green-600 bg-green-50' : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
                         >
                             <svg className="w-4 h-4" fill={note.isPinned ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -222,7 +222,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick, onDelete, onPin, onA
                                 e.stopPropagation();
                                 onDelete && onDelete(note.id);
                             }}
-                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-red-50 hover:text-red-600 px-2 py-1 rounded transition-colors text-xs font-bold ml-auto"
+                            className="flex items-center gap-1.5 text-[var(--text-muted)] hover:bg-red-50 hover:text-red-600 px-2 py-1.5 rounded transition-colors text-xs font-bold ml-auto"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

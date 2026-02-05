@@ -245,7 +245,7 @@ export default function CreateNotePage() {
 
     return (
         <>
-        <div className="min-h-screen bg-[#f0f2f5] pt-14">
+        <div className="min-h-screen bg-[var(--page-bg)] pt-14">
             <Navbar
                 onSearch={() => { }}
                 onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
@@ -262,19 +262,19 @@ export default function CreateNotePage() {
                     onCloseMobile={() => setIsMobileSidebarOpen(false)}
                 />
 
-                <main className={`flex-1 p-4 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}>
-                    <div className="max-w-3xl mx-auto py-6 px-4 sm:px-0">
-                        <div className="flex justify-between items-center border-b border-gray-200 pb-4 mb-6">
-                            <h1 className="text-lg font-bold text-gray-900">Create a New AI Note</h1>
-                            <button className="text-sm font-bold text-blue-600 hover:bg-blue-50 px-3 py-1 rounded">Drafts</button>
+                <main className={`flex-1 p-3 sm:p-4 lg:p-6 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}>
+                    <div className="max-w-3xl mx-auto py-4 sm:py-6 px-2 sm:px-4 lg:px-0">
+                        <div className="flex justify-between items-center border-b border-[var(--border-soft)] pb-4 mb-6">
+                            <h1 className="text-lg font-bold text-[var(--text-primary)]">Create a New AI Note</h1>
+                            <button className="text-sm font-bold text-blue-600 hover:bg-blue-500/10 px-3 py-1 rounded">Drafts</button>
                         </div>
 
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="bg-[var(--panel-solid)] rounded-xl border border-[var(--border-soft)] shadow-sm overflow-hidden">
                             {/* Type Selector Tabs */}
-                            <div className="flex border-b border-gray-200">
+                            <div className="flex border-b border-[var(--border-soft)]">
                                 <button
                                     onClick={() => setActiveTab('text')}
-                                    className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'text' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                                    className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'text' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
@@ -283,7 +283,7 @@ export default function CreateNotePage() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('url')}
-                                    className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'url' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:bg-gray-50'}`}
+                                    className={`flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2 transition-colors ${activeTab === 'url' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-[var(--text-muted)] hover:bg-[var(--input-bg)]'}`}
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.826a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -296,14 +296,14 @@ export default function CreateNotePage() {
                                 {activeTab === 'url' && (
                                     <div className="mb-4 space-y-3">
                                         <div className="flex flex-col gap-2">
-                                            <label className="text-xs font-semibold text-gray-600">Article URL</label>
+                                            <label className="text-xs font-semibold text-[var(--text-muted)]">Article URL</label>
                                             <div className="flex flex-col sm:flex-row gap-2">
                                                 <input
                                                     type="url"
                                                     value={urlInput}
                                                     onChange={(e) => setUrlInput(e.target.value)}
                                                     placeholder="https://example.com/article"
-                                                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
+                                                    className="flex-1 p-2 border border-[var(--border-soft)] rounded text-sm bg-[var(--panel-solid)] text-[var(--text-primary)]"
                                                 />
                                                 <button
                                                     type="button"
@@ -317,26 +317,26 @@ export default function CreateNotePage() {
                                                     {isUrlLoading ? 'Fetching…' : 'Fetch content'}
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-gray-500">We’ll pull the readable text from most blogs and articles.</p>
+                                            <p className="text-xs text-[var(--text-muted)]">We’ll pull the readable text from most blogs and articles.</p>
                                         </div>
                                         {urlMetadata && (
-                                            <div className="border border-blue-100 rounded-lg p-3 bg-blue-50">
-                                                <p className="text-sm font-semibold text-blue-900">{urlMetadata.title}</p>
+                                            <div className="border border-[var(--border-soft)] rounded-lg p-3 bg-[var(--panel-solid)]">
+                                                <p className="text-sm font-semibold text-[var(--text-primary)]">{urlMetadata.title}</p>
                                                 {urlMetadata.preview && (
-                                                    <p className="text-xs text-blue-800 mt-1 line-clamp-3">{urlMetadata.preview}</p>
+                                                    <p className="text-xs text-[var(--text-muted)] mt-1 line-clamp-3">{urlMetadata.preview}</p>
                                                 )}
-                                                <div className="text-[11px] text-blue-700 mt-2 flex flex-wrap gap-3">
+                                                <div className="text-[11px] text-blue-400 mt-2 flex flex-wrap gap-3">
                                                     {urlMetadata.author && <span>By {urlMetadata.author}</span>}
                                                     {urlMetadata.published && <span>Published {new Date(urlMetadata.published).toLocaleDateString()}</span>}
                                                 </div>
                                             </div>
                                         )}
                                         {input && (
-                                            <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
+                                            <div className="border border-[var(--border-soft)] rounded-xl p-4 bg-[var(--panel-solid)] shadow-sm">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div>
-                                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">What do you want to do with this content?</p>
-                                                        <p className="text-sm text-gray-600">Select an action to guide the AI output.</p>
+                                                        <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">What do you want to do with this content?</p>
+                                                        <p className="text-sm text-[var(--text-muted)]">Select an action to guide the AI output.</p>
                                                     </div>
                                                     {selectedPurpose && (
                                                         <button
@@ -355,11 +355,11 @@ export default function CreateNotePage() {
                                                             type="button"
                                                             onClick={() => setSelectedPurpose(action.value)}
                                                             className={`text-left border rounded-lg px-3 py-2 text-sm transition-all ${selectedPurpose === action.value
-                                                                ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm'
-                                                                : 'border-gray-200 hover:border-blue-200 hover:bg-gray-50'}`}
+                                                                ? 'border-blue-500 bg-blue-500/10 text-blue-400 shadow-sm'
+                                                                : 'border-[var(--border-soft)] hover:border-blue-500/30 hover:bg-[var(--input-bg)]'}`}
                                                         >
                                                             <div className="font-semibold">{action.label}</div>
-                                                            <p className="text-xs text-gray-500 mt-1">{action.instructions}</p>
+                                                            <p className="text-xs text-[var(--text-muted)] mt-1">{action.instructions}</p>
                                                         </button>
                                                     ))}
                                                 </div>
@@ -375,13 +375,13 @@ export default function CreateNotePage() {
                                         placeholder={activeTab === 'url'
                                                 ? "Fetched article content appears here. You can edit before sending to AI."
                                                 : "Paste meeting notes, random thoughts, or transcripts here..."}
-                                        className="w-full min-h[250px] p-4 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all text-sm leading-relaxed"
+                                        className="w-full min-h-[200px] sm:min-h-[250px] p-4 bg-[var(--input-bg)] border border-[var(--border-soft)] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-[var(--panel-solid)] transition-all text-sm leading-relaxed text-[var(--text-primary)] resize-y"
                                     />
                                     <div className="absolute top-4 right-4 flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={toggleRecording}
-                                            className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-sm transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-white text-gray-600 border border-gray-200 hover:text-blue-600 hover:border-blue-300'}`}
+                                            className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 shadow-sm transition-all ${isRecording ? 'bg-red-500 text-white animate-pulse' : 'bg-[var(--panel-solid)] text-[var(--text-muted)] border border-[var(--border-soft)] hover:text-blue-600 hover:border-blue-500/30'}`}
                                         >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18a4 4 0 004-4V6a4 4 0 10-8 0v8a4 4 0 004 4zm0 0v3m0 0H9m3 0h3" />
@@ -389,20 +389,20 @@ export default function CreateNotePage() {
                                             {isRecording ? 'Recording…' : 'Dictate'}
                                         </button>
                                     </div>
-                                    <div className="absolute bottom-3 right-3 text-xs text-gray-400 font-medium">
+                                    <div className="absolute bottom-3 right-3 text-xs text-[var(--text-muted)] font-medium">
                                         {input.length} characters
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-4 pt-2 border-t border-gray-100">
+                                <div className="flex flex-wrap gap-4 pt-2 border-t border-[var(--border-soft)]">
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">Tone</label>
-                                        <div className="flex bg-gray-100 rounded-lg p-1">
+                                        <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight">Tone</label>
+                                        <div className="flex bg-[var(--input-bg)] rounded-lg p-1">
                                             {(['professional', 'creative', 'concise'] as const).map(t => (
                                                 <button
                                                     key={t}
                                                     onClick={() => setConfig({ ...config, tone: t })}
-                                                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${config.tone === t ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${config.tone === t ? 'bg-[var(--panel-solid)] text-blue-600 shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                                                         }`}
                                                 >
                                                     {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -412,13 +412,13 @@ export default function CreateNotePage() {
                                     </div>
 
                                     <div className="flex flex-col gap-1.5">
-                                        <label className="text-[11px] font-bold text-gray-500 uppercase tracking-tight">Format</label>
-                                        <div className="flex bg-gray-100 rounded-lg p-1">
+                                        <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-tight">Format</label>
+                                        <div className="flex bg-[var(--input-bg)] rounded-lg p-1">
                                             {(['bullet_points', 'paragraph', 'flashcards'] as const).map(f => (
                                                 <button
                                                     key={f}
                                                     onClick={() => setConfig({ ...config, format: f })}
-                                                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${config.format === f ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                                    className={`px-3 py-1 rounded text-xs font-bold transition-all ${config.format === f ? 'bg-[var(--panel-solid)] text-blue-600 shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                                                         }`}
                                                 >
                                                     {f.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
@@ -429,10 +429,10 @@ export default function CreateNotePage() {
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-gray-50 flex justify-end gap-3 border-t border-gray-200">
+                            <div className="p-4 bg-[var(--input-bg)] flex justify-end gap-3 border-t border-[var(--border-soft)]">
                                 <button
                                     onClick={() => router.push('/')}
-                                    className="px-6 py-1.5 rounded-full border border-gray-300 text-sm font-bold text-gray-500 hover:bg-white transition-all"
+                                    className="px-6 py-1.5 rounded-full border border-[var(--border-soft)] text-sm font-bold text-[var(--text-muted)] hover:bg-[var(--panel-solid)] transition-all"
                                 >
                                     Cancel
                                 </button>

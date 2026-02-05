@@ -1060,11 +1060,11 @@ return (
         />
 
         <main
-          className={`flex-1 w-full p-4 sm:p-6 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}
+          className={`flex-1 w-full p-3 sm:p-4 lg:p-6 ${isResizing ? '' : 'transition-all duration-300 ease-in-out'}`}
         >
-          <div className="w-full max-w-6xl mx-auto flex flex-col xl:flex-row gap-6">
-            <section className="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto xl:mx-0">
-              <div className="py-4 px-2 sm:px-0">
+          <div className="w-full max-w-6xl mx-auto flex flex-col xl:flex-row gap-4 lg:gap-6">
+            <section className="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto xl:mx-0 min-w-0">
+              <div className="py-2 sm:py-4 px-0 sm:px-2 lg:px-0">
                 {/* Create Post Entry Box */}
                 <div className="bg-[var(--panel-solid)] border border-[var(--border-soft)] rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
                   {showOnboardingTip && (
@@ -1236,17 +1236,17 @@ return (
                 </div>
 
                 {selectionMode && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="bg-[var(--input-bg)] border border-[var(--border-soft)] rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-blue-900">{selectedCount} note{selectedCount === 1 ? '' : 's'} selected</p>
-                      <p className="text-xs text-blue-600">Choose a bulk action below</p>
+                      <p className="text-sm font-semibold text-[var(--text-primary)]">{selectedCount} note{selectedCount === 1 ? '' : 's'} selected</p>
+                      <p className="text-xs text-[var(--text-muted)]">Choose a bulk action below</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={handleSelectAll}
                         disabled={isPerformingBulk || selectedCount === filteredNotes.length}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${selectedCount === filteredNotes.length ? 'bg-[var(--input-bg)] text-[var(--border-strong)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-green-700 border border-green-200 hover:bg-green-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${selectedCount === filteredNotes.length ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-green-600 border border-green-500/30 hover:bg-green-500/10'}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1257,7 +1257,7 @@ return (
                         type="button"
                         onClick={() => handleBulkPin(true)}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-blue-700 border border-blue-200 hover:bg-blue-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-blue-600 border border-blue-500/30 hover:bg-blue-500/10'}`}
                       >
                         Pin
                       </button>
@@ -1277,7 +1277,7 @@ return (
                           setGroupNameInput('');
                         }}
                         disabled={!hasSelection || isPerformingBulk}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-violet-700 border border-violet-200 hover:bg-violet-100'}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-[var(--panel-solid)] text-[var(--border-strong)] border-[var(--border-soft)] cursor-not-allowed' : 'bg-[var(--panel-solid)] text-violet-400 border border-violet-500/30 hover:bg-violet-500/10'}`}
                       >
                         Group
                       </button>
@@ -1288,7 +1288,7 @@ return (
                             type="text"
                             value={groupNameInput}
                             onChange={(e) => setGroupNameInput(e.target.value)}
-                            className="px-3 py-1 text-xs border border-violet-200 rounded-full focus:outline-none focus:border-violet-400"
+                            className="px-3 py-1 text-xs border border-[var(--border-soft)] rounded-full focus:outline-none focus:border-violet-400 bg-[var(--panel-solid)] text-[var(--text-primary)]"
                             placeholder="Label name"
                             disabled={isPerformingBulk}
                           />
