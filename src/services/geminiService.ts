@@ -1,6 +1,13 @@
 "use server";
 
 import { GenerationConfig, PurposeActionDefinition, PurposeActionValue } from "@/types";
+import {
+    AttachmentPayload,
+    buildOpenRouterPayload,
+    callOpenRouter,
+    getOpenRouterConfig,
+    requestOpenRouter,
+} from "@/lib/openrouter";
 
 type PurposeFallback = PurposeActionValue | "default";
 
@@ -168,25 +175,11 @@ const buildFallbackResult = (
     }
 };
 
-interface OpenRouterResponse {
-    choices: {
-        message: {
-            content: string;
-        };
-    }[];
-}
-
 export const generateNote = async (
     rawContent: string,
     config: GenerationConfig,
     options?: GenerateNoteOptions
 ): Promise<{ title: string; summary: string; formattedContent: string; tags: string[] }> => {
-    const apiKey = process.env.TEXT_AI_API_KEY;
-
-    if (!apiKey) {
-        throw new Error("TEXT_AI_API_KEY is not set");
-    }
-
     const actionInstruction = options?.purpose?.instructions ?? null;
     const systemInstruction = `
     You are an expert personal assistant and note-taker.
@@ -213,51 +206,38 @@ export const generateNote = async (
         : rawContent;
 
     try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "AI Notes Generator",
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
-                messages: [
-                    { role: "system", content: systemInstruction },
-                    { role: "user", content: userContent }
-                ],
-                response_format: {
-                    type: "json_schema",
-                    json_schema: {
-                        name: "StructuredNote",
-                        schema: {
-                            type: "object",
-                            additionalProperties: false,
-                            required: ["title", "summary", "formattedContent", "tags"],
-                            properties: {
-                                title: { type: "string", description: "Catchy note title" },
-                                summary: { type: "string", description: "Two sentence summary" },
-                                formattedContent: { type: "string", description: "Markdown note body" },
-                                tags: {
-                                    type: "array",
-                                    minItems: 3,
-                                    maxItems: 5,
-                                    items: { type: "string" }
-                                }
+        const configOverrides = getOpenRouterConfig();
+        const data = await requestOpenRouter<{ choices: { message: { content: string } }[] }>({
+            model: configOverrides.model,
+            max_tokens: configOverrides.maxTokens,
+            messages: [
+                { role: "system", content: systemInstruction },
+                { role: "user", content: userContent },
+            ],
+            response_format: {
+                type: "json_schema",
+                json_schema: {
+                    name: "StructuredNote",
+                    schema: {
+                        type: "object",
+                        additionalProperties: false,
+                        required: ["title", "summary", "formattedContent", "tags"],
+                        properties: {
+                            title: { type: "string", description: "Catchy note title" },
+                            summary: { type: "string", description: "Two sentence summary" },
+                            formattedContent: { type: "string", description: "Markdown note body" },
+                            tags: {
+                                type: "array",
+                                minItems: 3,
+                                maxItems: 5,
+                                items: { type: "string" }
                             }
                         }
                     }
                 }
-            }),
-        });
+            }
+        }, configOverrides);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
-        }
-
-        const data: OpenRouterResponse = await response.json();
         const text = data.choices[0]?.message?.content;
 
         if (!text) {
@@ -278,36 +258,17 @@ export const generateNote = async (
 };
 
 export const chatWithAI = async (messages: { role: 'user' | 'assistant' | 'system', content: string }[]): Promise<string> => {
-    const apiKey = process.env.TEXT_AI_API_KEY;
-
-    if (!apiKey) {
-        throw new Error("TEXT_AI_API_KEY is not set");
-    }
-
     try {
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-                "HTTP-Referer": "http://localhost:3000",
-                "X-Title": "AI Notes Generator",
-            },
-            body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
-                messages: [
-                    { role: "system", content: "You are a helpful AI assistant for a note-taking app. Answer questions clearly and concisely." },
-                    ...messages
-                ]
-            }),
-        });
+        const configOverrides = getOpenRouterConfig();
+        const data = await requestOpenRouter<{ choices: { message: { content: string } }[] }>({
+            model: configOverrides.model,
+            max_tokens: configOverrides.maxTokens,
+            messages: [
+                { role: "system", content: "You are a helpful AI assistant for a note-taking app. Answer questions clearly and concisely." },
+                ...messages
+            ]
+        }, configOverrides);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`);
-        }
-
-        const data: OpenRouterResponse = await response.json();
         return data.choices[0]?.message?.content || "No response generated.";
 
     } catch (error) {
@@ -324,24 +285,6 @@ interface ImageAnalysisResult {
     tags: string[];
     raw?: unknown;
 }
-
-const classifyImageIntent = (input: string) => {
-    const normalized = input.toLowerCase();
-
-    // Only classify as color_analysis if ONLY asking about colors (not combined with other questions)
-    if (/^(what|which|tell me)?\s*(color|colour|palette|shade|hue)s?\s*(is|are|of)?/i.test(normalized)
-        && !/name|who|what is|identify|describe|character/.test(normalized)) {
-        return 'color_analysis';
-    }
-
-    if (/text|ocr|read|extract|written/.test(normalized)) return 'ocr';
-    if (/count|how many|number of/.test(normalized)) return 'counting';
-    if (/weight|size|distance|age|estimate/.test(normalized)) return 'estimation';
-    if (/identify|what is this|which object|who is|character|person/.test(normalized)) return 'object_identification';
-    if (/describe|what's happening|scene/.test(normalized)) return 'description';
-
-    return 'general_analysis';
-};
 
 const resolveApiBase = () => {
     // Client-side: use relative URLs
@@ -374,99 +317,44 @@ export const analyzeImageNote = async (
         throw new Error("Prompt is required for image analysis");
     }
 
-    const imagePayload = dataUrl.startsWith("data:")
-        ? dataUrl
-        : `data:${mimeType || "image/png"};base64,${dataUrl}`;
+    const normalizedMime = mimeType || "image/png";
+    const base64Data = dataUrl.startsWith("data:") ? dataUrl.split(",")[1] ?? "" : dataUrl;
 
-    const intent = classifyImageIntent(prompt);
-    const baseUrl = resolveApiBase();
-
-    const intentSystemPrompts: Record<string, string> = {
-        color_analysis: `
-You are a color analysis AI.
-The user is asking about colors in the image.
-Identify the colors accurately and describe them clearly.
-If the user asks for additional context (like names or objects), provide that too.
-Be accurate and thorough.
-`.trim(),
-
-        estimation: `
-You are an image-based estimation AI.
-Provide accurate numeric estimates based on what you see.
-Explain your reasoning briefly.
-Be as precise as possible.
-`.trim(),
-
-        ocr: `
-You are an OCR assistant.
-Extract all visible text from the image accurately.
-Preserve formatting where relevant.
-If no text is visible, say so clearly.
-`.trim(),
-
-        counting: `
-You are a visual counting assistant.
-Count what the user asked for accurately.
-Provide the number and a brief clarification.
-Be precise and thorough.
-`.trim(),
-
-        object_identification: `
-You are an object and character identification AI.
-Identify what you see in the image accurately.
-Provide names, descriptions, and relevant details.
-Be specific and accurate. If you recognize characters, brands, or objects, name them.
-`.trim(),
-
-        description: `
-You are an image description AI.
-Describe what you see in detail.
-Be accurate, thorough, and helpful.
-Include relevant context and details.
-`.trim(),
-
-        general_analysis: `
-You are a helpful image analysis AI.
-Answer the user's question accurately based on what you see.
-Be thorough, accurate, and provide relevant details.
-If you're unsure, say so rather than guessing.
-`.trim(),
-    };
-
-    const systemPrompt =
-        intentSystemPrompts[intent] ?? intentSystemPrompts.general_analysis;
-
-    const response = await fetch(`${baseUrl}/api/image-intent`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            imageDataUrl: imagePayload,
-            prompt,
-            systemPrompt,
-        }),
-    });
-
-    if (!response.ok) {
-        throw new Error(await response.text());
+    if (!base64Data) {
+        throw new Error("Invalid image data provided");
     }
 
-    const data = await response.json();
-    const answer = String(data.answer ?? "").trim();
+    const attachment: AttachmentPayload = {
+        id: `inline-image-${Date.now()}`,
+        name: "uploaded-image",
+        type: normalizedMime,
+        data: base64Data,
+        preview: dataUrl.startsWith("data:") ? dataUrl : null,
+    };
+
+    const analysisPrompt = `You are an expert vision note-taker. Analyze the attached image and respond to the following request. Provide structured, concise insights, reference any visible text, and call out notable details.\n\nUser request: ${prompt.trim()}`;
+
+    const configOverrides = getOpenRouterConfig();
+    const payload = buildOpenRouterPayload(
+        {
+            prompt: analysisPrompt,
+            attachments: [attachment],
+            conversation: [],
+        },
+        configOverrides
+    );
+
+    const answer = (await callOpenRouter(payload, configOverrides)).trim();
 
     if (!answer) {
         throw new Error("Empty AI response");
     }
 
     return {
-        title:
-            intent === "estimation"
-                ? "Estimated Result"
-                : intent === "ocr"
-                    ? "Extracted Text"
-                    : "Image Insight",
-        summary: answer.length > 200 ? answer.slice(0, 200) + "…" : answer,
+        title: "Image Insight",
+        summary: answer.length > 200 ? `${answer.slice(0, 200)}…` : answer,
         formattedContent: `Question: ${prompt}\n\n${answer}`,
-        tags: ["image", intent],
-        raw: data,
+        tags: ["image"],
+        raw: answer,
     };
 };

@@ -49,6 +49,9 @@ const NoteSchema: Schema = new Schema(
     }
 );
 
+// Index for efficient sorting and fetching by user
+NoteSchema.index({ userSlug: 1, isPinned: -1, createdAt: -1 });
+
 // Prevent overwriting model during hot reload
 const Note: Model<INote> = mongoose.models.Note || mongoose.model<INote>('Note', NoteSchema);
 

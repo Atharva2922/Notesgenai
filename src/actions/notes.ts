@@ -6,17 +6,28 @@ import { revalidatePath } from 'next/cache';
 import { getOrCreateProfile, updateCredits } from '@/actions/userProfile';
 
 const normalizeNote = (note: any) => ({
-    ...note,
     _id: note._id.toString(),
     id: note._id.toString(),
+    title: note.title,
+    content: note.content,
+    summary: note.summary,
+    tags: note.tags,
+    type: note.type,
+    isPinned: note.isPinned,
+    userSlug: note.userSlug,
+    userName: note.userName,
+    userEmail: note.userEmail,
     createdAt: (note.createdAt instanceof Date ? note.createdAt.getTime() : note.createdAt),
     updatedAt: (note.updatedAt instanceof Date ? note.updatedAt.getTime() : note.updatedAt),
-    attachments: (note.attachments ?? []).map((att: any) => ({
-        name: att.name,
-        type: att.type,
-        size: att.size,
-        data: att.data,
-    })),
+    // Only include attachments if they exist (excluded from list view for performance)
+    ...(note.attachments ? {
+        attachments: note.attachments.map((att: any) => ({
+            name: att.name,
+            type: att.type,
+            size: att.size,
+            data: att.data, // May be undefined if excluded
+        }))
+    } : {}),
 });
 
 /**
@@ -31,13 +42,41 @@ export async function getNotes(userSlug?: string) {
             return [];
         }
 
-        const notes = await Note.find({ userSlug }).sort({ isPinned: -1, createdAt: -1 }).lean();
+        // Optimization: Exclude 'attachments.data' (base64 strings) from the list view query
+        const notes = await Note.find({ userSlug })
+            .select('-attachments.data')
+            .sort({ isPinned: -1, createdAt: -1 })
+            .lean();
 
         // Serialize Date objects to strings/numbers for Client Component
-        return notes.map((note: any) => normalizeNote(note));
+        const normalized = notes.map((note: any) => normalizeNote(note));
+
+        // Deep clone to break any hidden Mongoose references that might cause React serialization issues
+        return JSON.parse(JSON.stringify(normalized));
     } catch (error) {
         console.error("Failed to fetch notes:", error);
         return [];
+    }
+}
+
+/**
+ * Fetch a single note by ID with all details (including attachments).
+ */
+export async function getNote(id: string, userSlug: string) {
+    try {
+        await connectDB();
+
+        const note = await Note.findOne({ _id: id, userSlug }).lean();
+
+        if (!note) return null;
+
+        const normalized = normalizeNote(note);
+
+        // Deep clone to break any hidden Mongoose references
+        return JSON.parse(JSON.stringify(normalized));
+    } catch (error) {
+        console.error(`Failed to fetch note ${id}:`, error);
+        return null;
     }
 }
 
@@ -75,7 +114,8 @@ export async function createNote(data: Partial<INote> & { userSlug?: string }) {
         await updateCredits(notePayload.userSlug!, 1);
         revalidatePath('/'); // Refresh home page
 
-        return normalizeNote(newNote.toObject());
+        const normalized = normalizeNote(newNote.toObject());
+        return JSON.parse(JSON.stringify(normalized));
     } catch (error) {
         console.error("Failed to create note:", error);
         if (error instanceof Error && (error.message === "BLOCKED_USER" || error.message === "NO_CREDITS")) {
@@ -109,7 +149,8 @@ export async function updateNote(id: string, data: Partial<INote>, userSlug?: st
 
         revalidatePath('/');
 
-        return normalizeNote(updatedNote);
+        const normalized = normalizeNote(updatedNote);
+        return JSON.parse(JSON.stringify(normalized));
     } catch (error) {
         console.error("Failed to update note:", error);
         throw new Error("Failed to update note");

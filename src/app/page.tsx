@@ -10,7 +10,7 @@ import UpgradeModal from '@/components/UpgradeModal';
 import { CollectionDefinition, Note } from '@/types';
 
 import NoteModal from '@/components/NoteModal';
-import { getNotes, updateNote, deleteNote, createNote } from '@/actions/notes';
+import { getNotes, updateNote, deleteNote, createNote, getNote } from '@/actions/notes';
 import { analyzeImageNote } from '@/services/geminiService';
 import Toast, { ToastAction } from '@/components/Toast';
 import { PlanDefinition, PlanTier } from '@/lib/plans';
@@ -35,7 +35,7 @@ const TRENDING_TAGS = [
 type TrendingTag = typeof TRENDING_TAGS[number];
 
 const ONBOARDING_TIP_KEY = 'notesgen-onboarding-tip';
-const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024; // 2MB, keeps base64 under Vercel body limits
+const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024; // 2MB limit for uploads
 
 export default function Home() {
   const router = useRouter();
@@ -605,6 +605,33 @@ export default function Home() {
     }
   }, [selectedNote, userProfile?.slug]);
 
+  // Fetch full note details (lazy load images) when selected
+  useEffect(() => {
+    if (!selectedNote || !userProfile?.slug) return;
+
+    // Check if we need to fetch full data (i.e. if we have image attachments but no data string)
+    // The list view excludes 'attachments.data' for performance
+    const hasMissingData = selectedNote.attachments?.some(att => att.type.startsWith('image') && !att.data);
+
+    if (hasMissingData) {
+      // Use IIFE to run async
+      (async () => {
+        try {
+          const fullNote = await getNote(selectedNote.id, userProfile.slug);
+          if (fullNote) {
+            // Update selectedNote with full data if IDs match (user might have closed it fast)
+            setSelectedNote(current => (current?.id === fullNote.id ? fullNote as unknown as Note : current));
+
+            // Also update the list so if they close and reopen, it's there? 
+            // Actually, keep list lightweight. Only update 'selectedNote'.
+          }
+        } catch (e) {
+          console.error("Failed to lazy load note", e);
+        }
+      })();
+    }
+  }, [selectedNote, userProfile?.slug]);
+
   const handleConfirmAssign = useCallback(async () => {
     if (!notePendingAssignment) {
       setAssignError('Select a note to continue.');
@@ -1007,318 +1034,318 @@ export default function Home() {
             <div className="w-full max-w-6xl mx-auto flex flex-col xl:flex-row gap-6">
               <section className="flex-1 w-full max-w-3xl xl:max-w-4xl mx-auto xl:mx-0">
                 <div className="py-4 px-2 sm:px-0">
-              {/* Create Post Entry Box */}
-              <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
-                {showOnboardingTip && (
-                  <div className="absolute -top-10 left-16 hidden sm:flex flex-col items-center">
-                    <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-3">
-                      <span>Start here — your first AI note</span>
-                      <button
-                        type="button"
-                        onClick={handleDismissOnboardingTip}
-                        className="text-white/70 hover:text-white"
-                        aria-label="Dismiss onboarding"
+                  {/* Create Post Entry Box */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-sm relative overflow-hidden">
+                    {showOnboardingTip && (
+                      <div className="absolute -top-10 left-16 hidden sm:flex flex-col items-center">
+                        <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-3">
+                          <span>Start here — your first AI note</span>
+                          <button
+                            type="button"
+                            onClick={handleDismissOnboardingTip}
+                            className="text-white/70 hover:text-white"
+                            aria-label="Dismiss onboarding"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <span className="w-3 h-3 bg-gray-900 rotate-45 -mt-1"></span>
+                      </div>
+                    )}
+                    <div className="flex gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
+                        <img src={userProfile?.picture || "https://picsum.photos/seed/user/40/40"} alt="avatar" className="rounded-full" />
+                      </div>
+                      <div className="flex-1">
+                        <Link
+                          href="/create"
+                          onClick={handleDismissOnboardingTip}
+                          className="block w-full bg-gradient-to-r from-gray-100/70 to-white hover:from-white hover:to-gray-50 rounded-xl border border-blue-200/70 hover:border-blue-400 px-4 py-3 transition-all cursor-pointer text-left group shadow-[0_10px_30px_rgba(59,130,246,0.08)]"
+                        >
+                          <span className="text-gray-900 font-semibold block mb-1 group-hover:text-blue-600 transition-colors">New idea or transcript?</span>
+                          <span className="text-xs text-gray-500 block">Paste a transcript, meeting notes, or rough ideas — AI will structure it.</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 sm:pl-[3.25rem]">
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleAttachmentButtonClick('photo')}
+                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
+                          title="Upload Photo"
+                          disabled={isUploadingAttachment}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h4l2-2h6l2 2h4v14H3V5zm6 4a3 3 0 106 0 3 3 0 00-6 0zm-3 9h12" />
+                          </svg>
+                          <span className="hidden sm:inline">Photo</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAttachmentButtonClick('file')}
+                          className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
+                          title="Attach File"
+                          disabled={isUploadingAttachment}
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l6.364-6.364a2 2 0 10-2.828-2.828l-5.657 5.657" />
+                          </svg>
+                          <span className="hidden sm:inline">File</span>
+                        </button>
+                      </div>
+
+                      <Link
+                        href="/create"
+                        className="w-full sm:w-auto justify-center bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-[0_12px_30px_rgba(79,70,229,0.35)] hover:shadow-[0_15px_35px_rgba(79,70,229,0.45)] transition-all flex items-center gap-2"
                       >
-                        ×
-                      </button>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate with AI
+                      </Link>
                     </div>
-                    <span className="w-3 h-3 bg-gray-900 rotate-45 -mt-1"></span>
-                  </div>
-                )}
-                <div className="flex gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
-                    <img src={userProfile?.picture || "https://picsum.photos/seed/user/40/40"} alt="avatar" className="rounded-full" />
-                  </div>
-                  <div className="flex-1">
-                    <Link
-                      href="/create"
-                      onClick={handleDismissOnboardingTip}
-                      className="block w-full bg-gradient-to-r from-gray-100/70 to-white hover:from-white hover:to-gray-50 rounded-xl border border-blue-200/70 hover:border-blue-400 px-4 py-3 transition-all cursor-pointer text-left group shadow-[0_10px_30px_rgba(59,130,246,0.08)]"
-                    >
-                      <span className="text-gray-900 font-semibold block mb-1 group-hover:text-blue-600 transition-colors">New idea or transcript?</span>
-                      <span className="text-xs text-gray-500 block">Paste a transcript, meeting notes, or rough ideas — AI will structure it.</span>
-                    </Link>
-                  </div>
-                </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 sm:pl-[3.25rem]">
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleAttachmentButtonClick('photo')}
-                      className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
-                      title="Upload Photo"
-                      disabled={isUploadingAttachment}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h4l2-2h6l2 2h4v14H3V5zm6 4a3 3 0 106 0 3 3 0 00-6 0zm-3 9h12" />
-                      </svg>
-                      <span className="hidden sm:inline">Photo</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAttachmentButtonClick('file')}
-                      className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 text-xs font-semibold"
-                      title="Attach File"
-                      disabled={isUploadingAttachment}
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l6.364-6.364a2 2 0 10-2.828-2.828l-5.657 5.657" />
-                      </svg>
-                      <span className="hidden sm:inline">File</span>
-                    </button>
-                  </div>
-
-                  <Link
-                    href="/create"
-                    className="w-full sm:w-auto justify-center bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-500 text-white px-5 py-2 rounded-full text-sm font-bold shadow-[0_12px_30px_rgba(79,70,229,0.35)] hover:shadow-[0_15px_35px_rgba(79,70,229,0.45)] transition-all flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Generate with AI
-                  </Link>
-                </div>
-
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => handleFileChange(e, 'photo')}
-                />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => handleFileChange(e, 'file')}
-                />
-              </div>
-
-              {pendingPhotoData && (
-                <div className="bg-white border border-blue-200 rounded-xl p-4 mb-4 shadow-md">
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="sm:w-48 w-full">
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <img
-                          src={pendingPhotoData.dataUrl}
-                          alt={pendingPhotoData.file.name || 'Selected photo'}
-                          className="w-full h-48 object-cover"
-                        />
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">
-                        {pendingPhotoData.file.name} &middot; {(pendingPhotoData.file.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                    <div className="flex-1 flex flex-col gap-3">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
-                          Photo Instruction
-                        </label>
-                        <textarea
-                          value={photoPrompt}
-                          onChange={(e) => setPhotoPrompt(e.target.value)}
-                          placeholder="Describe what you want the AI to extract from this photo..."
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
-                        />
-                      </div>
-                      <div className="flex flex-wrap gap-2 justify-end">
-                        <button
-                          type="button"
-                          onClick={handleCancelPhotoUpload}
-                          className="px-4 py-2 rounded-full border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50"
-                          disabled={isUploadingAttachment}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleConfirmPhotoUpload}
-                          className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                          disabled={isUploadingAttachment}
-                        >
-                          {isUploadingAttachment && (
-                            <span className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin"></span>
-                          )}
-                          Analyze & Save
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Sort & Selection Controls */}
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <div className="flex gap-2">
-                  {['Best', 'New', 'Top'].map((sortOption) => (
-                    <button
-                      key={sortOption}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold border ${sortOption === 'New' ? 'bg-white border-gray-300 text-blue-600 ring-1 ring-blue-500' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                        }`}
-                    >
-                      {sortOption}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 ${selectionMode ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {selectionMode ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    )}
-                  </svg>
-                  {selectionMode ? 'Done Selecting' : 'Select Notes'}
-                </button>
-              </div>
-
-              {selectionMode && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">{selectedCount} note{selectedCount === 1 ? '' : 's'} selected</p>
-                    <p className="text-xs text-blue-600">Choose a bulk action below</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleBulkPin(true)}
-                      disabled={!hasSelection || isPerformingBulk}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100'}`}
-                    >
-                      Pin
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleBulkPin(false)}
-                      disabled={!hasSelection || isPerformingBulk}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
-                    >
-                      Unpin
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!hasSelection || isPerformingBulk) return;
-                        setIsGroupNaming(true);
-                        setGroupNameInput('');
-                      }}
-                      disabled={!hasSelection || isPerformingBulk}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-violet-700 border border-violet-200 hover:bg-violet-100'}`}
-                    >
-                      Group
-                    </button>
-                    {isGroupNaming && (
-                      <div className="flex items-center gap-2">
-                        <input
-                          ref={bulkGroupInputRef}
-                          type="text"
-                          value={groupNameInput}
-                          onChange={(e) => setGroupNameInput(e.target.value)}
-                          className="px-3 py-1 text-xs border border-violet-200 rounded-full focus:outline-none focus:border-violet-400"
-                          placeholder="Label name"
-                          disabled={isPerformingBulk}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setIsGroupNaming(false)}
-                          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleBulkGroup}
-                          disabled={!groupNameInput.trim() || isPerformingBulk}
-                          className={`px-3 py-1 text-xs font-bold rounded-full ${!groupNameInput.trim() || isPerformingBulk ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' : 'bg-violet-600 text-white border border-violet-600 hover:bg-violet-700'}`}
-                        >
-                          Apply
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleBulkDelete}
-                      disabled={!hasSelection || isPerformingBulk}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-red-500 text-white border border-red-500 hover:bg-red-600'}`}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Note List */}
-              <div className="space-y-4">
-                {isLoading ? (
-                  <div className="text-center py-20">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading your notes...</p>
-                  </div>
-                ) : filteredNotes.length === 0 ? (
-                  <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
-                    <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <h3 className="text-lg font-bold text-gray-600">No notes yet</h3>
-                    <p className="text-gray-400 mb-6">Start by creating your first AI note!</p>
-                    <Link
-                      href="/create"
-                      className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold hover:bg-blue-700 transition-colors inline-block"
-                    >
-                      Create Note
-                    </Link>
-                  </div>
-                ) : (
-                  filteredNotes.map(note => (
-                    <NoteCard
-                      key={note.id}
-                      note={note}
-                      onClick={() => setSelectedNote(note)}
-                      onPin={handlePinNote}
-                      onAssign={handleOpenAssignModal}
-                      onDelete={(id) => {
-                        setSelectedNote(prev => (prev && prev.id === id ? null : prev));
-                        showToast(
-                          "Delete this note?",
-                          "info",
-                          [
-                            {
-                              label: "Cancel",
-                              onClick: dismissToast,
-                            },
-                            {
-                              label: "Delete",
-                              onClick: () => {
-                                dismissToast();
-                                void handleDeleteNote(id);
-                              },
-                            },
-                          ]
-                        );
-                      }}
-                      selectionMode={selectionMode}
-                      selected={selectedNotes.has(note.id)}
-                      onSelectToggle={handleSelectToggle}
-                      notify={(message, type) => showToast(message, type)}
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleFileChange(e, 'photo')}
                     />
-                  ))
-                )}
-              </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => handleFileChange(e, 'file')}
+                    />
+                  </div>
 
-              <div className="mt-8 xl:hidden">
-                <TrendingTagsPanel
-                  tags={TRENDING_TAGS}
-                  activeTag={activeTrendingTag}
-                  onTagSelect={handleTrendingTagClick}
-                  onClear={handleClearTrendingTag}
-                />
-              </div>
-              </div>
+                  {pendingPhotoData && (
+                    <div className="bg-white border border-blue-200 rounded-xl p-4 mb-4 shadow-md">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="sm:w-48 w-full">
+                          <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <img
+                              src={pendingPhotoData.dataUrl}
+                              alt={pendingPhotoData.file.name || 'Selected photo'}
+                              className="w-full h-48 object-cover"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 mt-2 line-clamp-2">
+                            {pendingPhotoData.file.name} &middot; {(pendingPhotoData.file.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                        <div className="flex-1 flex flex-col gap-3">
+                          <div>
+                            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
+                              Photo Instruction
+                            </label>
+                            <textarea
+                              value={photoPrompt}
+                              onChange={(e) => setPhotoPrompt(e.target.value)}
+                              placeholder="Describe what you want the AI to extract from this photo..."
+                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[120px]"
+                            />
+                          </div>
+                          <div className="flex flex-wrap gap-2 justify-end">
+                            <button
+                              type="button"
+                              onClick={handleCancelPhotoUpload}
+                              className="px-4 py-2 rounded-full border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50"
+                              disabled={isUploadingAttachment}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleConfirmPhotoUpload}
+                              className="px-5 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                              disabled={isUploadingAttachment}
+                            >
+                              {isUploadingAttachment && (
+                                <span className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin"></span>
+                              )}
+                              Analyze & Save
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sort & Selection Controls */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                    <div className="flex gap-2">
+                      {['Best', 'New', 'Top'].map((sortOption) => (
+                        <button
+                          key={sortOption}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold border ${sortOption === 'New' ? 'bg-white border-gray-300 text-blue-600 ring-1 ring-blue-500' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                            }`}
+                        >
+                          {sortOption}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2 ${selectionMode ? 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {selectionMode ? (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        ) : (
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        )}
+                      </svg>
+                      {selectionMode ? 'Done Selecting' : 'Select Notes'}
+                    </button>
+                  </div>
+
+                  {selectionMode && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl px-4 py-3 mb-4 flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">{selectedCount} note{selectedCount === 1 ? '' : 's'} selected</p>
+                        <p className="text-xs text-blue-600">Choose a bulk action below</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleBulkPin(true)}
+                          disabled={!hasSelection || isPerformingBulk}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-blue-700 border border-blue-200 hover:bg-blue-100'}`}
+                        >
+                          Pin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkPin(false)}
+                          disabled={!hasSelection || isPerformingBulk}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-100'}`}
+                        >
+                          Unpin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!hasSelection || isPerformingBulk) return;
+                            setIsGroupNaming(true);
+                            setGroupNameInput('');
+                          }}
+                          disabled={!hasSelection || isPerformingBulk}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-white text-violet-700 border border-violet-200 hover:bg-violet-100'}`}
+                        >
+                          Group
+                        </button>
+                        {isGroupNaming && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              ref={bulkGroupInputRef}
+                              type="text"
+                              value={groupNameInput}
+                              onChange={(e) => setGroupNameInput(e.target.value)}
+                              className="px-3 py-1 text-xs border border-violet-200 rounded-full focus:outline-none focus:border-violet-400"
+                              placeholder="Label name"
+                              disabled={isPerformingBulk}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setIsGroupNaming(false)}
+                              className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleBulkGroup}
+                              disabled={!groupNameInput.trim() || isPerformingBulk}
+                              className={`px-3 py-1 text-xs font-bold rounded-full ${!groupNameInput.trim() || isPerformingBulk ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed' : 'bg-violet-600 text-white border border-violet-600 hover:bg-violet-700'}`}
+                            >
+                              Apply
+                            </button>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={handleBulkDelete}
+                          disabled={!hasSelection || isPerformingBulk}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 ${!hasSelection || isPerformingBulk ? 'bg-white text-gray-300 border-gray-200 cursor-not-allowed' : 'bg-red-500 text-white border border-red-500 hover:bg-red-600'}`}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Note List */}
+                  <div className="space-y-4">
+                    {isLoading ? (
+                      <div className="text-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-500">Loading your notes...</p>
+                      </div>
+                    ) : filteredNotes.length === 0 ? (
+                      <div className="text-center py-20 bg-white rounded-xl border border-gray-200">
+                        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 className="text-lg font-bold text-gray-600">No notes yet</h3>
+                        <p className="text-gray-400 mb-6">Start by creating your first AI note!</p>
+                        <Link
+                          href="/create"
+                          className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold hover:bg-blue-700 transition-colors inline-block"
+                        >
+                          Create Note
+                        </Link>
+                      </div>
+                    ) : (
+                      filteredNotes.map(note => (
+                        <NoteCard
+                          key={note.id}
+                          note={note}
+                          onClick={() => setSelectedNote(note)}
+                          onPin={handlePinNote}
+                          onAssign={handleOpenAssignModal}
+                          onDelete={(id) => {
+                            setSelectedNote(prev => (prev && prev.id === id ? null : prev));
+                            showToast(
+                              "Delete this note?",
+                              "info",
+                              [
+                                {
+                                  label: "Cancel",
+                                  onClick: dismissToast,
+                                },
+                                {
+                                  label: "Delete",
+                                  onClick: () => {
+                                    dismissToast();
+                                    void handleDeleteNote(id);
+                                  },
+                                },
+                              ]
+                            );
+                          }}
+                          selectionMode={selectionMode}
+                          selected={selectedNotes.has(note.id)}
+                          onSelectToggle={handleSelectToggle}
+                          notify={(message, type) => showToast(message, type)}
+                        />
+                      ))
+                    )}
+                  </div>
+
+                  <div className="mt-8 xl:hidden">
+                    <TrendingTagsPanel
+                      tags={TRENDING_TAGS}
+                      activeTag={activeTrendingTag}
+                      onTagSelect={handleTrendingTagClick}
+                      onClear={handleClearTrendingTag}
+                    />
+                  </div>
+                </div>
               </section>
 
               <aside className="w-full xl:w-80 flex-shrink-0 space-y-4">
@@ -1552,7 +1579,7 @@ export default function Home() {
         />
       )}
     </>
-    );
+  );
 }
 
 interface TrendingTagsPanelProps {
