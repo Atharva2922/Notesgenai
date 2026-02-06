@@ -83,9 +83,19 @@ type UsageRow = {
 };
 
 type PlanRow = {
+    dbId?: string;
+    planId?: string;
     name: string;
     price: string;
+    priceSuffix?: string;
     credits: string;
+    creditLimit?: number | null;
+    badge?: string;
+    description?: string;
+    features?: string[];
+    highlight?: boolean;
+    currency?: string;
+    amountInPaise?: number | null;
     activeUsers: number;
 };
 
@@ -195,6 +205,9 @@ export default function AdminPage() {
         fact_check: false,
     });
     const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
+    const [planModalMode, setPlanModalMode] = useState<"create" | "edit">("create");
+    const [planDraft, setPlanDraft] = useState<PlanRow | null>(null);
+    const [planActionLoading, setPlanActionLoading] = useState<string | null>(null);
 
     const moderationLoad = useMemo(
         () => ({ total: MODERATION_QUEUE.length, urgent: MODERATION_QUEUE.filter((item) => item.flag !== "Image review").length }),
@@ -410,6 +423,57 @@ export default function AdminPage() {
         if (Number.isNaN(date.getTime())) return "—";
         return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
     }, []);
+
+    const formatCharge = useCallback((plan: PlanRow) => {
+        if (!plan.amountInPaise || plan.amountInPaise <= 0) return "—";
+        const amount = plan.amountInPaise / 100;
+        const currency = plan.currency ?? "INR";
+        return `${currency} ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }, []);
+
+    const openCreatePlan = useCallback(() => {
+        setPlanDraft(null);
+        setPlanModalMode("create");
+        setIsCreatePlanOpen(true);
+    }, []);
+
+    const openEditPlan = useCallback((plan: PlanRow) => {
+        setPlanDraft(plan);
+        setPlanModalMode("edit");
+        setIsCreatePlanOpen(true);
+    }, []);
+
+    const handleDeletePlan = useCallback(
+        async (plan: PlanRow) => {
+            const identifier = plan.planId || plan.dbId;
+            if (!identifier) {
+                showToast("Unable to delete plan: missing identifier.", "error");
+                return;
+            }
+            const confirmed = window.confirm(`Delete plan "${plan.name}"? This action cannot be undone.`);
+            if (!confirmed) return;
+            setPlanActionLoading(identifier);
+            try {
+                const res = await fetch("/api/admin/plans", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ planId: plan.planId, id: plan.dbId }),
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(text || "Failed to delete plan");
+                }
+                showToast("Plan deleted.", "success");
+                refreshPlans();
+            } catch (error) {
+                console.error("Failed to delete plan", error);
+                showToast("Unable to delete plan.", "error");
+            } finally {
+                setPlanActionLoading(null);
+            }
+        },
+        [refreshPlans, showToast]
+    );
 
     const handleUserAction = useCallback(
         async (slug: string, action: "block" | "unblock" | "resetCredits") => {
@@ -1308,17 +1372,19 @@ export default function AdminPage() {
                                     <h4 className="text-xl font-semibold text-[var(--text-primary)]">Billing tiers</h4>
                                 </div>
                                 <button
-                                    onClick={() => setIsCreatePlanOpen(true)}
+                                    onClick={openCreatePlan}
                                     className="rounded-full border border-[var(--border-soft)] px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-[var(--input-bg)]"
                                 >
                                     Create plan
                                 </button>
                                 {isCreatePlanOpen && (
                                     <CreatePlanModal
+                                        mode={planModalMode}
+                                        initialPlan={planDraft ?? undefined}
                                         onClose={() => setIsCreatePlanOpen(false)}
-                                        onSuccess={() => {
+                                        onSuccess={(message) => {
                                             refreshPlans();
-                                            showToast("Plan created successfully.", "success");
+                                            showToast(message ?? "Plan saved.", "success");
                                         }}
                                     />
                                 )}
@@ -1328,9 +1394,11 @@ export default function AdminPage() {
                                     <thead>
                                         <tr className="text-left text-xs uppercase tracking-[0.2em] text-[var(--text-muted)] border-b">
                                             <th className="py-3 pr-4">Plan</th>
-                                            <th className="py-3 pr-4">Price</th>
-                                            <th className="py-3 pr-4">Credits / month</th>
+                                            <th className="py-3 pr-4">Display pricing</th>
+                                            <th className="py-3 pr-4">Billing amount</th>
+                                            <th className="py-3 pr-4">Credits</th>
                                             <th className="py-3 pr-4">Active users</th>
+                                            <th className="py-3 pr-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -1357,14 +1425,53 @@ export default function AdminPage() {
                                         )}
                                         {!planLoading &&
                                             !planError &&
-                                            planRows.map((plan) => (
-                                                <tr key={plan.name}>
-                                                    <td className="py-3 pr-4 font-semibold text-[var(--text-primary)]">{plan.name}</td>
-                                                    <td className="py-3 pr-4 text-gray-700">{plan.price}</td>
-                                                    <td className="py-3 pr-4 text-gray-700">{plan.credits}</td>
-                                                    <td className="py-3 pr-4 text-[var(--text-primary)]">{plan.activeUsers.toLocaleString()}</td>
-                                                </tr>
-                                            ))}
+                                            planRows.map((plan) => {
+                                                const identifier = plan.planId || plan.dbId || plan.name;
+                                                return (
+                                                    <tr key={identifier}>
+                                                        <td className="py-3 pr-4 font-semibold text-[var(--text-primary)]">
+                                                            <div className="flex flex-col">
+                                                                <span>{plan.name}</span>
+                                                                {plan.planId && <span className="text-xs text-[var(--text-muted)]">{plan.planId}</span>}
+                                                                {plan.badge && <span className="text-xs text-[var(--accent)] font-semibold">{plan.badge}</span>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 pr-4 text-gray-700">
+                                                            <div className="flex flex-col">
+                                                                <span>{plan.price}</span>
+                                                                {plan.priceSuffix && <span className="text-xs text-[var(--text-muted)]">{plan.priceSuffix}</span>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 pr-4 text-gray-700">{formatCharge(plan)}</td>
+                                                        <td className="py-3 pr-4 text-gray-700">
+                                                            <div className="flex flex-col">
+                                                                <span>{plan.credits}</span>
+                                                                {typeof plan.creditLimit === "number" && (
+                                                                    <span className="text-xs text-[var(--text-muted)]">Limit: {plan.creditLimit.toLocaleString()}</span>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 pr-4 text-[var(--text-primary)]">{plan.activeUsers.toLocaleString()}</td>
+                                                        <td className="py-3 pr-4 text-right space-x-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openEditPlan(plan)}
+                                                                className="px-3 py-1 rounded-full border border-[var(--border-soft)] text-xs font-semibold hover:bg-[var(--input-bg)]"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeletePlan(plan)}
+                                                                className="px-3 py-1 rounded-full border border-rose-200 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60"
+                                                                disabled={planActionLoading === identifier}
+                                                            >
+                                                                {planActionLoading === identifier ? "Deleting…" : "Delete"}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
                                     </tbody>
                                 </table>
                             </div>

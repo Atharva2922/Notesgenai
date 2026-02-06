@@ -5,8 +5,9 @@ import { PlanDefinition, PlanTier } from "@/lib/plans";
 
 interface UpgradeModalProps {
   plans: PlanDefinition[];
-  currentPlan: PlanTier | null;
-  selectedPlan: PlanTier | null;
+  currentPlanId: PlanTier | null;
+  currentPlanLabel?: string | null;
+  selectedPlanId: PlanTier | null;
   onSelect: (plan: PlanTier) => void;
   onClose: () => void;
   onConfirm: () => void;
@@ -17,8 +18,9 @@ interface UpgradeModalProps {
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({
   plans,
-  currentPlan,
-  selectedPlan,
+  currentPlanId,
+  currentPlanLabel,
+  selectedPlanId,
   onSelect,
   onClose,
   onConfirm,
@@ -26,12 +28,15 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   isLoading,
   isSubmitting,
 }) => {
+  const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? null;
+  const currentPlanName = currentPlanLabel ?? plans.find((plan) => plan.id === currentPlanId)?.name ?? currentPlanId;
+  const samePlanSelected = selectedPlan && currentPlanId && selectedPlan.id === currentPlanId;
   const actionDisabled = !selectedPlan || isLoading || isSubmitting;
   const actionLabel = !selectedPlan
     ? "Select a plan"
-    : selectedPlan === currentPlan
-      ? "Refresh current plan"
-      : `Switch to ${selectedPlan}`;
+    : samePlanSelected
+      ? `Refresh ${selectedPlan.name}`
+      : `Switch to ${selectedPlan.name}`;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4 py-10 overflow-y-auto">
@@ -66,10 +71,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 </button>
               </div>
             </div>
-            {currentPlan && (
+            {currentPlanName && (
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--accent)] text-white text-xs font-semibold w-fit">
                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                Current plan: {currentPlan}
+                Current plan: {currentPlanName}
               </div>
             )}
           </div>
@@ -83,8 +88,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             ) : (
               <div className="grid gap-6 md:grid-cols-3">
                 {plans.map((plan) => {
-                  const isSelected = selectedPlan === plan.id;
-                  const isCurrent = currentPlan === plan.id;
+                  const isSelected = selectedPlanId === plan.id;
+                  const isCurrent = currentPlanId === plan.id;
+                  const monthlyCreditsLabel = plan.credits ?? (typeof plan.creditLimit === "number" ? `${plan.creditLimit.toLocaleString()} credits / month` : "Custom credits");
+                  const billingLabel = typeof plan.amountInPaise === "number" && plan.amountInPaise > 0
+                    ? `${plan.currency ?? "INR"} ${(plan.amountInPaise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : "Contact sales";
                   return (
                     <button
                       key={plan.id}
@@ -116,18 +125,25 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                           <span className={`text-sm font-semibold ${plan.highlight ? "text-white/80" : "text-[var(--text-muted)]"}`}>{plan.priceSuffix}</span>
                         </div>
                         <p className={`text-sm mt-1 ${plan.highlight ? "text-white/80" : "text-[var(--text-muted)]"}`}>{plan.description}</p>
+                        <p className={`text-xs mt-2 font-semibold ${plan.highlight ? "text-white/80" : "text-[var(--text-muted)]"}`}>
+                          Billing: {billingLabel}
+                        </p>
                       </div>
                       <div className={`w-full rounded-2xl border px-4 py-3 ${plan.highlight ? "border-white/30 bg-white/10 text-white" : "border-[var(--border-soft)] bg-[var(--panel-solid)]"}`}>
                         <p className="text-xs font-semibold uppercase tracking-wide mb-1">Monthly credits</p>
-                        <p className="text-xl font-black">{plan.creditLimit.toLocaleString()}</p>
+                        <p className="text-xl font-black">{monthlyCreditsLabel}</p>
                       </div>
-                      <ul className="space-y-2 text-sm">
-                        {plan.features.map((feature) => (
-                          <li key={feature} className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${plan.highlight ? "bg-white" : "bg-[var(--accent)]"}`}></span>
-                            <span className={plan.highlight ? "text-white" : "text-[var(--text-muted)]"}>{feature}</span>
-                          </li>
-                        ))}
+                      <ul className="space-y-2 text-sm w-full">
+                        {(plan.features ?? []).length > 0 ? (
+                          plan.features!.map((feature) => (
+                            <li key={feature} className="flex items-center gap-2">
+                              <span className={`w-2 h-2 rounded-full ${plan.highlight ? "bg-white" : "bg-[var(--accent)]"}`}></span>
+                              <span className={plan.highlight ? "text-white" : "text-[var(--text-muted)]"}>{feature}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className={plan.highlight ? "text-white/80" : "text-[var(--text-muted)]"}>Custom perks configured by your admin.</li>
+                        )}
                       </ul>
                       {isSelected && (
                         <span className={`absolute top-4 right-4 text-[10px] font-black tracking-[0.3em] uppercase ${plan.highlight ? "text-white/70" : "text-[var(--accent)]"}`}>

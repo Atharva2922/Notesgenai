@@ -21,6 +21,7 @@
     "mongoose": "^9.1.2",
     "next": "^16.1.6",
     "nodemailer": "^7.0.13",
+    "razorpay": "^2.9.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",

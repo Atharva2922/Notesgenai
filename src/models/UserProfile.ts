@@ -1,6 +1,6 @@
 import mongoose, { Schema, model, models } from 'mongoose';
 
-export type UserPlan = 'Free' | 'Pro' | 'Enterprise';
+export type UserPlan = string;
 export type UserStatus = 'Active' | 'Blocked';
 
 export interface IUserFact {
@@ -15,6 +15,7 @@ export interface IUserProfile extends mongoose.Document {
     name: string;
     email: string;
     plan: UserPlan;
+    planId?: string;
     creditsTotal: number;
     creditsUsed: number;
     status: UserStatus;
@@ -40,7 +41,8 @@ const UserProfileSchema = new Schema<IUserProfile>(
         slug: { type: String, required: true, unique: true },
         name: { type: String, default: 'NotesGen User' },
         email: { type: String, default: 'user@example.com' },
-        plan: { type: String, enum: ['Free', 'Pro', 'Enterprise'], default: 'Free' },
+        plan: { type: String, default: 'Free' },
+        planId: { type: String }, // Added planId string field
         creditsTotal: { type: Number, default: 100 },
         creditsUsed: { type: Number, default: 0 },
         status: { type: String, enum: ['Active', 'Blocked'], default: 'Active' },

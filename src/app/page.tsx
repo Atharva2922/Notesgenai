@@ -59,8 +59,9 @@ export default function Home() {
   const [toast, setToast] = useState<{ message: string; type: "info" | "error" | "success"; actions?: ToastAction[] } | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [planOptions, setPlanOptions] = useState<PlanDefinition[]>([]);
-  const [currentPlan, setCurrentPlan] = useState<PlanTier | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [currentPlanLabel, setCurrentPlanLabel] = useState<string | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const bulkGroupInputRef = useRef<HTMLInputElement>(null);
@@ -218,12 +219,14 @@ const fetchPlans = useCallback(async () => {
     const data = await response.json();
     const plans = Array.isArray(data?.plans) ? (data.plans as PlanDefinition[]) : [];
     setPlanOptions(plans);
-    const nextPlan =
-      typeof data?.currentPlan === "string" && ["Free", "Pro", "Enterprise"].includes(data.currentPlan)
-        ? (data.currentPlan as PlanTier)
-        : null;
-    setCurrentPlan(nextPlan);
-    setSelectedPlan(nextPlan);
+
+    const currentPlanFromProfile = typeof data?.currentPlan === "string" ? data.currentPlan : null;
+    const currentPlanIdFromProfile = typeof data?.currentPlanId === "string" ? data.currentPlanId : null;
+    const nextPlanId = currentPlanIdFromProfile || currentPlanFromProfile;
+    setCurrentPlanId(nextPlanId);
+    setSelectedPlanId(nextPlanId);
+    const matchedPlan = plans.find((plan) => plan.id === nextPlanId) ?? null;
+    setCurrentPlanLabel(matchedPlan?.name ?? currentPlanFromProfile);
   } catch (error) {
     console.error("Failed to load subscription plans", error);
     showToast("Failed to load plans. Please try again.", "error");
@@ -245,12 +248,12 @@ const handleRefreshPlans = useCallback(() => {
   void fetchPlans();
 }, [fetchPlans]);
 
-const handlePlanSelect = useCallback((plan: PlanTier) => {
-  setSelectedPlan(plan);
+const handlePlanSelect = useCallback((planId: string) => {
+  setSelectedPlanId(planId);
 }, []);
 
 const handleConfirmSubscription = useCallback(async () => {
-  if (!selectedPlan) return;
+  if (!selectedPlanId) return;
   setIsSubscribing(true);
   try {
     const response = await fetch("/api/subscribe", {
@@ -258,27 +261,28 @@ const handleConfirmSubscription = useCallback(async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ plan: selectedPlan }),
+      body: JSON.stringify({ plan: selectedPlanId }),
     });
     if (!response.ok) {
       throw new Error("Failed to update subscription");
     }
     const data = await response.json();
-    const updatedPlan =
-      typeof data?.profile?.plan === "string" && ["Free", "Pro", "Enterprise"].includes(data.profile.plan)
-        ? (data.profile.plan as PlanTier)
-        : selectedPlan;
-    setCurrentPlan(updatedPlan);
-    setSelectedPlan(updatedPlan);
+    const updatedPlanId = typeof data?.profile?.planId === "string" ? data.profile.planId : selectedPlanId;
+    const updatedPlanLabel = typeof data?.profile?.plan === "string"
+      ? data.profile.plan
+      : planOptions.find((plan) => plan.id === updatedPlanId)?.name ?? updatedPlanId;
+    setCurrentPlanId(updatedPlanId);
+    setSelectedPlanId(updatedPlanId);
+    setCurrentPlanLabel(updatedPlanLabel);
     setIsUpgradeModalOpen(false);
-    showToast(`Subscription updated to ${updatedPlan}. Credits refreshed!`, "success");
+    showToast(`Subscription updated to ${updatedPlanLabel ?? updatedPlanId}. Credits refreshed!`, "success");
   } catch (error) {
     console.error("Subscription update failed", error);
     showToast("Failed to update subscription. Please try again.", "error");
   } finally {
     setIsSubscribing(false);
   }
-}, [selectedPlan, showToast]);
+}, [selectedPlanId, showToast, planOptions]);
 
 const handleDismissOnboardingTip = useCallback(() => {
   setShowOnboardingTip(false);
@@ -1610,8 +1614,9 @@ return (
     {isUpgradeModalOpen && (
       <UpgradeModal
         plans={planOptions}
-        currentPlan={currentPlan}
-        selectedPlan={selectedPlan}
+        currentPlanId={currentPlanId as any}
+        currentPlanLabel={currentPlanLabel}
+        selectedPlanId={selectedPlanId as any}
         onSelect={handlePlanSelect}
         onClose={handleCloseUpgrade}
         onConfirm={handleConfirmSubscription}

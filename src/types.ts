@@ -79,7 +79,8 @@ export interface UserProfile {
     slug: string;
     name: string;
     email: string;
-    plan: 'Free' | 'Pro' | 'Enterprise';
+    plan: string;
+    planId?: string;
     creditsTotal: number;
     creditsUsed: number;
     status: 'Active' | 'Blocked';
