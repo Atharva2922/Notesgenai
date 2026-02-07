@@ -86,7 +86,7 @@ export default function LoginPage() {
             }
 
             setTimeout(() => {
-                void router.push("/");
+                void router.push("/dashboard");
             }, 800);
         } catch (error) {
             setFeedback({
@@ -196,7 +196,7 @@ export default function LoginPage() {
             }
 
             setTimeout(() => {
-                void router.push("/");
+                void router.push("/dashboard");
             }, 600);
         } catch (error) {
             setFeedback({

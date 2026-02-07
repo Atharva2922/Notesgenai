@@ -1,0 +1,66 @@
+﻿
+> next@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  ┬╖ serverActions
+
+  Creating an optimized production build ...
+npm : 
+At line:1 char:1
++ npm run build > build_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecifie 
+   d: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeComma 
+   ndError
+ 
+> Build error occurred
+Error: Turbopack build failed with 1 
+errors:
+./src/app/api/payments/order/route.ts:2:1
+Module not found: Can't resolve 'razorpay'
+[0m [90m 1 |[39m [36mimport[39m { 
+[33mNextRequest[39m[33m,[39m 
+[33mNextResponse[39m } [36mfrom[39m 
+[32m"next/server"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m 
+[36mimport[39m [33mRazorpay[39m 
+[36mfrom[39m 
+[32m"razorpay"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m[31m[1m^[22m
+[39m[31m[1m^[22m[39m[31m[1m^[22m[3
+9m[31m[1m^[22m[39m[31m[1m^[22m[39m
+[31m[1m^[22m[39m[31m[1m^[22m[39m[
+31m[1m^[22m[39m[31m[1m^[22m[39m[31
+m[1m^[22m[39m[31m[1m^[22m[39m[31m
+[1m^[22m[39m[31m[1m^[22m[39m[31m[1
+m^[22m[39m[31m[1m^[22m[39m[31m[1m^
+[22m[39m[31m[1m^[22m[39m[31m[1m^[
+22m[39m[31m[1m^[22m[39m[31m[1m^[22
+m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m 
+connectDB [36mfrom[39m 
+[32m"@/lib/db"[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m 
+[33mPaymentModel[39m [36mfrom[39m [32
+m"@/models/Payment"[39m[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-no
+t-found
+
+
+    at <unknown> (./src/app/api/payments/o
+rder/route.ts:2:1)
+    at <unknown> (https://nextjs.org/docs/
+messages/module-not-found)
